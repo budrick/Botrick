@@ -46,7 +46,7 @@ impl Foon {
 
     // Get the current word as String
     pub fn get(&self) -> String {
-        return self.werd.clone();
+        self.werd.clone()
     }
 }
 
@@ -67,7 +67,7 @@ impl Spork {
     // Constructor
     pub fn new(db: Connection) -> Self {
         Spork {
-            db: db
+            db
         }
     }
 
@@ -104,7 +104,7 @@ impl Spork {
 
     // Return an immutable reference to our DB
     fn get_db(&self) -> &Connection {
-        return &self.db;
+        &self.db
     }
 }
 
@@ -116,7 +116,7 @@ fn getdb() -> Connection {
     path.push("werdz");
     path.set_extension("sqlite");
 
-    return Connection::open(path).unwrap();
+    Connection::open(path).unwrap()
 }
 
 // Returns a cached SQLite statement
@@ -171,30 +171,30 @@ fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
     // let mut words = Vec::<String>::new();
     let mut words = vec![w.get()];
     let initword = &w;
-    let mut prev = initword.prev_word(&s);
-    let mut next = initword.next_word(&s);
+    let mut prev = initword.prev_word(s);
+    let mut next = initword.next_word(s);
 
-    loop {
+    while let Some(ref prevword) = prev {
         match prev {
             Some(ref prevword) => {
                 words.insert(0, prevword.get());
-                prev = prevword.prev_word(&s);
-            }
-            _ => { break; }
+                prev = prevword.prev_word(s);
+            },
+            None =>()
         }
     }
 
-    loop {
+    while let Some(ref nextword) = next {
         match next {
             Some(ref nextword) => {
                 words.push(nextword.get());
-                next = nextword.next_word(&s);
-            }
-            _ => { break; }
+                next = nextword.next_word(s);
+            },
+            None => ()
         }
     }
 
-    return words;
+    words
 }
 
 fn main() {

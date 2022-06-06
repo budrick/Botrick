@@ -1,10 +1,9 @@
 use rusqlite::{named_params, Connection, CachedStatement};
-use std::env;
 
 // Represents a word record. Current word, and next and prev words.
 // Has methods to quickly retrieve the next and previous words from the DB.
 #[derive(Debug)]
-struct Foon {
+pub struct Foon {
     prev: Option<String>,
     werd: String,
     next: Option<String>,
@@ -58,7 +57,7 @@ impl std::fmt::Display for Foon {
 }
 
 // A controller of sorts. Holds a database handle, has methods to fetch starting words.
-struct Spork {
+pub struct Spork {
     db: Connection
 }
 
@@ -72,7 +71,7 @@ impl Spork {
     }
 
     // Fetch a random start word record from the database.
-    fn start(&self) -> Option<Foon> {
+    pub fn start(&self) -> Option<Foon> {
         let mut stmt = get_random_start(&self.db);
         let res = stmt.query_row([], |row| Ok(Foon{
             werd: row.get(0)?,
@@ -87,7 +86,7 @@ impl Spork {
     }
 
     // Fetch a random instance of the given start word from the database.
-    fn start_with_word<S: Into<String>>(&self, word: S) -> Option<Foon> {
+    pub fn start_with_word<S: Into<String>>(&self, word: S) -> Option<Foon> {
         let word = word.into();
         let mut stmt = get_search_start(&self.db);
         let res = stmt.query_row(named_params!{":werd": word}, |row| Ok(Foon{
@@ -103,13 +102,13 @@ impl Spork {
     }
 
     // Return an immutable reference to our DB
-    fn get_db(&self) -> &Connection {
+    pub fn get_db(&self) -> &Connection {
         &self.db
     }
 }
 
 // Returns an SQLite DB handle
-fn getdb() -> Connection {
+pub fn getdb() -> Connection {
     // Overly Correctly construct a path to a DB file
     let mut path = std::env::current_dir().unwrap();
     path.push("data");
@@ -167,7 +166,7 @@ fn get_search_prev(db: &Connection) -> CachedStatement<'_> {
 }
 
 // Does what it says. Given a start word and a Spork, do the needful.
-fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
+pub fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
     // let mut words = Vec::<String>::new();
     let mut words = vec![w.get()];
     let initword = &w;
@@ -195,31 +194,4 @@ fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
     }
 
     words
-}
-
-fn main() {
-    // Spin up the database, and a Spork to use it.
-    let db = getdb();
-    let s = Spork::new(db);
-
-    // Get all our cmdline args
-    let args: Vec<String> = env::args().collect();
-
-    // If we have more than one arg, take the first one and run with it.
-    // Otherwise, find out own start word. With blackjack. And hookers.
-    let startw = match args.len() {
-        1 => s.start(),
-        _ => s.start_with_word(&args[1])
-    };
-
-    // If we have a start word, go with it. Otherwise, error out stupidly.
-    match startw {
-        Some(word) => {
-            let words = build_words(word, &s);
-            println!("{}", words.join(" "));
-        }
-        _ => {
-            println!("Couldn't do it could I");
-        }
-    }
 }

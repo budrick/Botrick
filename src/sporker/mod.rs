@@ -173,7 +173,7 @@ pub fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
     let mut prev = initword.prev_word(s);
     let mut next = initword.next_word(s);
 
-    while let Some(ref prevword) = prev {
+    while let Some(ref _prevword) = prev {
         match prev {
             Some(ref prevword) => {
                 words.insert(0, prevword.get());
@@ -183,7 +183,7 @@ pub fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
         }
     }
 
-    while let Some(ref nextword) = next {
+    while let Some(ref _nextword) = next {
         match next {
             Some(ref nextword) => {
                 words.push(nextword.get());

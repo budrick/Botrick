@@ -37,8 +37,10 @@ async fn main() -> irc::error::Result<()> {
                 let words: Vec<&str> = text.strip_prefix(":spork ").unwrap().split_whitespace().collect();
                 let startw;
                 if words.len() > 0 {
+                    println!("{} sporked {:?}", target, words);
                     startw = s.start_with_word(words[0]);
                 } else {
+                    println!("{} sporked no words", target);
                     startw = s.start()
                 }
 

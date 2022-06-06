@@ -23,7 +23,7 @@ async fn main() -> irc::error::Result<()> {
         let msgtarget = message.source_nickname();
         let target = match msgtarget {
             Some(nick) => {
-                format!("{}:", nick.to_string())
+                format!("{}:", nick)
             }
             _ => "".to_string()
         }.to_string();
@@ -46,14 +46,13 @@ async fn main() -> irc::error::Result<()> {
             match cmd {
                 "spork" => {
                     let words: Vec<&str> = cmd_text.split_whitespace().collect();
-                    let startw;
-                    if words.len() > 0 {
+                    let startw = if !words.is_empty() {
                         println!("{} sporked {:?}", target, words);
-                        startw = s.start_with_word(words[0]);
+                        s.start_with_word(words[0])
                     } else {
                         println!("{} sporked no words", target);
-                        startw = s.start()
-                    }
+                        s.start()
+                    };
 
                     match startw {
                         Some(word) => {

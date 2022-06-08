@@ -1,4 +1,6 @@
-use rusqlite::{named_params, Connection, CachedStatement};
+use rusqlite::{named_params, Connection};
+
+mod statements;
 
 // Represents a word record. Current word, and next and prev words.
 // Has methods to quickly retrieve the next and previous words from the DB.
@@ -13,7 +15,7 @@ impl Foon {
 
     // Fetch the next word record. Returns the word record or None.
     pub fn next_word(&self, s: &Spork) -> Option<Foon> {
-        let mut stmt = get_search_next(s.get_db());
+        let mut stmt = statements::get_search_next(s.get_db());
         
         let res = stmt.query_row(named_params!{":werd": self.next.clone(), ":prevwerd": self.werd}, |row| Ok(Foon{
             werd: row.get(0)?,
@@ -29,7 +31,7 @@ impl Foon {
 
     // Fetch the previous word record. Returns the word record or None.
     pub fn prev_word(&self, s: &Spork) -> Option<Foon> {
-        let mut stmt = get_search_prev(s.get_db());
+        let mut stmt = statements::get_search_prev(s.get_db());
         
         let res = stmt.query_row(named_params!{":werd": self.prev.clone(), ":nextwerd": self.werd}, |row| Ok(Foon{
             werd: row.get(0)?,
@@ -72,7 +74,7 @@ impl Spork {
 
     // Fetch a random start word record from the database.
     pub fn start(&self) -> Option<Foon> {
-        let mut stmt = get_random_start(&self.db);
+        let mut stmt = statements::get_random_start(&self.db);
         let res = stmt.query_row([], |row| Ok(Foon{
             werd: row.get(0)?,
             next: row.get(1)?,
@@ -88,7 +90,7 @@ impl Spork {
     // Fetch a random instance of the given start word from the database.
     pub fn start_with_word<S: Into<String>>(&self, word: S) -> Option<Foon> {
         let word = word.into();
-        let mut stmt = get_search_start(&self.db);
+        let mut stmt = statements::get_search_start(&self.db);
         let res = stmt.query_row(named_params!{":werd": word}, |row| Ok(Foon{
             werd: row.get(0)?,
             next: row.get(1)?,
@@ -118,53 +120,6 @@ pub fn getdb() -> Connection {
     Connection::open(path).unwrap()
 }
 
-// Returns a cached SQLite statement
-fn get_random_start(db: &Connection) -> CachedStatement<'_> {
-
-    return db.prepare_cached("SELECT werd, nextwerd, prevwerd FROM werdz
-        WHERE _ROWID_ >= (abs(random()) % (SELECT max(_ROWID_) FROM werdz))
-        AND (prevwerd IS NOT NULL
-        OR nextwerd IS NOT NULL)
-        LIMIT 1;").unwrap();
-}
-
-// Returns a cached SQLite statement
-fn get_search_start(db: &Connection) -> CachedStatement<'_> {
-    return db.prepare_cached("SELECT werd, nextwerd, prevwerd FROM werdz 
-        WHERE rowid IN (
-            SELECT rowid FROM werdz
-            WHERE werd = :werd AND (prevwerd IS NOT NULL OR nextwerd IS NOT NULL)
-            ORDER BY RANDOM()
-            LIMIT 1
-        );").unwrap();
-}
-
-// Returns a cached SQLite statement
-fn get_search_next(db: &Connection) -> CachedStatement<'_> {
-    return db.prepare_cached("SELECT werd, nextwerd, prevwerd FROM werdz
-        WHERE rowid IN (
-            SELECT rowid FROM werdz
-            WHERE werd = :werd
-            AND prevwerd = :prevwerd
-            ORDER BY RANDOM()
-            LIMIT 1
-        )
-        LIMIT 1;").unwrap();
-}
-
-// Returns a cached SQLite statement
-fn get_search_prev(db: &Connection) -> CachedStatement<'_> {
-    return db.prepare_cached("SELECT werd, nextwerd, prevwerd FROM werdz
-        WHERE rowid IN (
-            SELECT rowid FROM werdz
-            WHERE werd = :werd
-            AND nextwerd = :nextwerd
-            ORDER BY RANDOM()
-            LIMIT 1
-        )
-        LIMIT 1;").unwrap();
-}
-
 // Does what it says. Given a start word and a Spork, do the needful.
 pub fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
     // let mut words = Vec::<String>::new();
@@ -173,23 +128,17 @@ pub fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
     let mut prev = initword.prev_word(s);
     let mut next = initword.next_word(s);
 
-    while let Some(ref _prevword) = prev {
-        match prev {
-            Some(ref prevword) => {
-                words.insert(0, prevword.get());
-                prev = prevword.prev_word(s);
-            },
-            None =>()
+    while let Some(ref __) = prev {
+        if let Some(ref prevword) = prev {
+            words.insert(0, prevword.get());
+            prev = prevword.prev_word(s);
         }
     }
 
-    while let Some(ref _nextword) = next {
-        match next {
-            Some(ref nextword) => {
-                words.push(nextword.get());
-                next = nextword.next_word(s);
-            },
-            None => ()
+    while let Some(ref __) = next {
+        if let Some(ref nextword) = next {
+            words.push(nextword.get());
+            next = nextword.next_word(s);
         }
     }
 

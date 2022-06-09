@@ -18,7 +18,7 @@ async fn main() -> irc::error::Result<()> {
     let db = sporker::getdb();
     let s = sporker::Spork::new(db);
 
-    let command_re = Regex::new(r"^:(\S+)(\s*)").unwrap();
+    let command_re = Regex::new(r"^%(\S+)(\s*)").unwrap();
 
     while let Some(message) = stream.next().await.transpose()? {
         let msgtarget = message.source_nickname();
@@ -42,7 +42,7 @@ async fn main() -> irc::error::Result<()> {
                 _ => continue
             };
 
-            let cmd_text = text.strip_prefix(format!(":{}{}", cmd, spaces).as_str()).unwrap();
+            let cmd_text = text.strip_prefix(format!("%{}{}", cmd, spaces).as_str()).unwrap();
 
             match cmd {
                 "spork" => {

@@ -34,6 +34,10 @@ async fn main() -> irc::error::Result<()> {
             //     // client.send_privmsg(&channel, "beep boop").unwrap();
             // }
 
+            if text.starts_with(".bots") {
+                client.send_privmsg(&channel, "Reporting in! [Rust] just %spork or %sporklike, yo.").unwrap();
+            }
+
             let maybe_cmd = command_re.captures(text);
             let (cmd, spaces): (&str, &str) = match maybe_cmd {
                 Some(matches) => {

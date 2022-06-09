@@ -65,6 +65,44 @@ async fn main() -> irc::error::Result<()> {
                             client.send_privmsg(&channel, "Couldn't do it could I").unwrap();
                         }
                     }
+                }
+                "sporklike" => {
+
+                    // Get all our cmdline args
+                    let words: Vec<&str> = cmd_text.split_whitespace().collect();
+
+                    // Fewer than 2 args? Go away.
+                    if words.len() < 1 {
+                        client.send_privmsg(&channel, "Talking about nobody is it").unwrap();
+                        continue;
+                        // Ok(())
+                    }
+
+                    let saidby = words[0];
+
+                    // If we have more than one arg, take the first one and run with it.
+                    // Otherwise, find out own start word. With blackjack. And hookers.
+                    let startw = match words.len() {
+                        1 => {
+                        println!("{} sporkliked {}", target, saidby);
+                            s.start_like(saidby)
+                        },
+                        _ => {
+                            println!("{} sporkliked {} {:?}", target, saidby, words);
+                            s.start_with_word_like(words[1], saidby)
+                        }
+                    };
+
+                    match startw {
+                        Some(word) => {
+                            let mut words = sporker::build_words_like(word, &s, saidby);
+                            words.insert(0, target);
+                            client.send_privmsg(&channel, words.join(" ")).unwrap();
+                        }
+                        _ => {
+                            client.send_privmsg(&channel, "Couldn't do it could I").unwrap();
+                        }
+                    }
                 },
                 _ => continue
             }

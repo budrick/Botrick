@@ -15,7 +15,7 @@ impl Foon {
 
     // Fetch the next word record. Returns the word record or None.
     pub fn next_word(&self, s: &Spork) -> Option<Foon> {
-        let mut stmt = statements::get_search_next(s.get_db());
+        let mut stmt = statements::search_next(s.get_db());
         
         let res = stmt.query_row(named_params!{":werd": self.next.clone(), ":prevwerd": self.werd}, |row| Ok(Foon{
             werd: row.get(0)?,
@@ -31,7 +31,7 @@ impl Foon {
 
     // Fetch the previous word record. Returns the word record or None.
     pub fn prev_word(&self, s: &Spork) -> Option<Foon> {
-        let mut stmt = statements::get_search_prev(s.get_db());
+        let mut stmt = statements::search_prev(s.get_db());
         
         let res = stmt.query_row(named_params!{":werd": self.prev.clone(), ":nextwerd": self.werd}, |row| Ok(Foon{
             werd: row.get(0)?,
@@ -74,7 +74,22 @@ impl Spork {
 
     // Fetch a random start word record from the database.
     pub fn start(&self) -> Option<Foon> {
-        let mut stmt = statements::get_random_start(&self.db);
+        let mut stmt = statements::random_start(&self.db);
+        let res = stmt.query_row([], |row| Ok(Foon{
+            werd: row.get(0)?,
+            next: row.get(1)?,
+            prev: row.get(2)?
+        }));
+
+        match res {
+            Ok(x) => Some(x),
+            Err(_e) => None
+        }
+    }
+
+    // Fetch a random start word record from the database.
+    pub fn start_like(&self, saidby: &str) -> Option<Foon> {
+        let mut stmt = statements::random_start_like(&self.db);
         let res = stmt.query_row([], |row| Ok(Foon{
             werd: row.get(0)?,
             next: row.get(1)?,
@@ -90,7 +105,23 @@ impl Spork {
     // Fetch a random instance of the given start word from the database.
     pub fn start_with_word<S: Into<String>>(&self, word: S) -> Option<Foon> {
         let word = word.into();
-        let mut stmt = statements::get_search_start(&self.db);
+        let mut stmt = statements::search_start(&self.db);
+        let res = stmt.query_row(named_params!{":werd": word}, |row| Ok(Foon{
+            werd: row.get(0)?,
+            next: row.get(1)?,
+            prev: row.get(2)?
+        }));
+
+        match res {
+            Ok(x) => Some(x),
+            Err(_e) => None
+        }
+    }
+
+    // Fetch a random instance of the given start word from the database.
+    pub fn start_with_word_like<S: Into<String>>(&self, word: S, saidby: &str) -> Option<Foon> {
+        let word = word.into();
+        let mut stmt = statements::search_start_like(&self.db);
         let res = stmt.query_row(named_params!{":werd": word}, |row| Ok(Foon{
             werd: row.get(0)?,
             next: row.get(1)?,

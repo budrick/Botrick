@@ -29,11 +29,43 @@ impl Foon {
         }
     }
 
+    // Fetch the next word record. Returns the word record or None.
+    pub fn next_word_like(&self, s: &Spork, saidby: &str) -> Option<Foon> {
+        let mut stmt = statements::search_next_like(s.get_db());
+        
+        let res = stmt.query_row(named_params!{":werd": self.next.clone(), ":prevwerd": self.werd, ":saidby": saidby}, |row| Ok(Foon{
+            werd: row.get(0)?,
+            next: row.get(1)?,
+            prev: row.get(2)?
+        }));
+
+        match res {
+            Ok(r) => Some(r),
+            Err(_e) => None
+        }
+    }
+
     // Fetch the previous word record. Returns the word record or None.
     pub fn prev_word(&self, s: &Spork) -> Option<Foon> {
         let mut stmt = statements::search_prev(s.get_db());
         
         let res = stmt.query_row(named_params!{":werd": self.prev.clone(), ":nextwerd": self.werd}, |row| Ok(Foon{
+            werd: row.get(0)?,
+            next: row.get(1)?,
+            prev: row.get(2)?
+        }));
+
+        match res {
+            Ok(r) => Some(r),
+            Err(_e) => None
+        }
+    }
+
+    // Fetch the previous word record. Returns the word record or None.
+    pub fn prev_word_like(&self, s: &Spork, saidby: &str) -> Option<Foon> {
+        let mut stmt = statements::search_prev_like(s.get_db());
+        
+        let res = stmt.query_row(named_params!{":werd": self.prev.clone(), ":nextwerd": self.werd, ":saidby": saidby}, |row| Ok(Foon{
             werd: row.get(0)?,
             next: row.get(1)?,
             prev: row.get(2)?
@@ -90,7 +122,7 @@ impl Spork {
     // Fetch a random start word record from the database.
     pub fn start_like(&self, saidby: &str) -> Option<Foon> {
         let mut stmt = statements::random_start_like(&self.db);
-        let res = stmt.query_row([], |row| Ok(Foon{
+        let res = stmt.query_row(named_params!{":saidby": saidby}, |row| Ok(Foon{
             werd: row.get(0)?,
             next: row.get(1)?,
             prev: row.get(2)?
@@ -122,7 +154,7 @@ impl Spork {
     pub fn start_with_word_like<S: Into<String>>(&self, word: S, saidby: &str) -> Option<Foon> {
         let word = word.into();
         let mut stmt = statements::search_start_like(&self.db);
-        let res = stmt.query_row(named_params!{":werd": word}, |row| Ok(Foon{
+        let res = stmt.query_row(named_params!{":werd": word, ":saidby": saidby}, |row| Ok(Foon{
             werd: row.get(0)?,
             next: row.get(1)?,
             prev: row.get(2)?
@@ -170,6 +202,31 @@ pub fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
         if let Some(ref nextword) = next {
             words.push(nextword.get());
             next = nextword.next_word(s);
+        }
+    }
+
+    words
+}
+
+// Does what it says. Given a start word and a Spork, do the needful.
+pub fn build_words_like(w: Foon, s: &Spork, saidby:&str) -> Vec::<String> {
+    // let mut words = Vec::<String>::new();
+    let mut words = vec![w.get()];
+    let initword = &w;
+    let mut prev = initword.prev_word_like(s, saidby);
+    let mut next = initword.next_word_like(s, saidby);
+
+    while let Some(ref __) = prev {
+        if let Some(ref prevword) = prev {
+            words.insert(0, prevword.get());
+            prev = prevword.prev_word_like(s, saidby);
+        }
+    }
+
+    while let Some(ref __) = next {
+        if let Some(ref nextword) = next {
+            words.push(nextword.get());
+            next = nextword.next_word_like(s, saidby);
         }
     }
 

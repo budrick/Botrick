@@ -2,7 +2,8 @@ use irc::client::prelude::*;
 use futures::prelude::*;
 use regex::Regex;
 
-mod sporker;
+extern crate botrick;
+use botrick::sporker;
 
 #[tokio::main]
 async fn main() -> irc::error::Result<()> {

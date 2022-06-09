@@ -21,21 +21,25 @@ async fn main() -> irc::error::Result<()> {
     let command_re = Regex::new(r"^%(\S+)(\s*)").unwrap();
 
     while let Some(message) = stream.next().await.transpose()? {
-        let msgtarget = message.source_nickname();
-        let target = match msgtarget {
-            Some(nick) => {
-                format!("{}:", nick)
-            }
-            _ => "".to_string()
-        }.to_string();
-        if let Command::PRIVMSG(ref channel, ref text) = message.command {
+        if let Command::PRIVMSG(ref _channel, ref text) = message.command {
             // if text.contains(&*client.current_nickname()) {
             //     // send_privmsg comes from ClientExt
             //     // client.send_privmsg(&channel, "beep boop").unwrap();
             // }
 
+            let responseplace = message.response_target().unwrap();
+            let msgnick = message.source_nickname();
+            let responsenick = match msgnick {
+                Some(nick) => {
+                    format!("{}:", nick)
+                }
+                _ => "".to_string()
+            }.to_string();
+    
+            // println!("source_nickname: {:?} response_target {:?} channel {:?}", message.source_nickname(), message.response_target(), channel);
+
             if text.starts_with(".bots") {
-                client.send_privmsg(&channel, "Reporting in! [Rust] just %spork or %sporklike, yo.").unwrap();
+                client.send_privmsg(responseplace, "Reporting in! [Rust] just %spork or %sporklike, yo.").unwrap();
             }
 
             let maybe_cmd = command_re.captures(text);
@@ -52,21 +56,21 @@ async fn main() -> irc::error::Result<()> {
                 "spork" => {
                     let words: Vec<&str> = cmd_text.split_whitespace().collect();
                     let startw = if !words.is_empty() {
-                        println!("{} sporked {:?}", target, words);
+                        println!("{} sporked {:?}", responsenick, words);
                         s.start_with_word(words[0])
                     } else {
-                        println!("{} sporked no words", target);
+                        println!("{} sporked no words", responsenick);
                         s.start()
                     };
 
                     match startw {
                         Some(word) => {
                             let mut words = sporker::build_words(word, &s);
-                            words.insert(0, target);
-                            client.send_privmsg(&channel, words.join(" ")).unwrap();
+                            words.insert(0, responsenick.to_string());
+                            client.send_privmsg(responseplace, words.join(" ")).unwrap();
                         }
                         _ => {
-                            client.send_privmsg(&channel, "Couldn't do it could I").unwrap();
+                            client.send_privmsg(responseplace, "Couldn't do it could I").unwrap();
                         }
                     }
                 }
@@ -77,7 +81,7 @@ async fn main() -> irc::error::Result<()> {
 
                     // Fewer than 2 args? Go away.
                     if words.len() < 1 {
-                        client.send_privmsg(&channel, "Talking about nobody is it").unwrap();
+                        client.send_privmsg(responseplace, "Talking about nobody is it").unwrap();
                         continue;
                         // Ok(())
                     }
@@ -88,11 +92,11 @@ async fn main() -> irc::error::Result<()> {
                     // Otherwise, find out own start word. With blackjack. And hookers.
                     let startw = match words.len() {
                         1 => {
-                        println!("{} sporkliked {}", target, saidby);
+                        println!("{} sporkliked {}", responsenick, saidby);
                             s.start_like(saidby)
                         },
                         _ => {
-                            println!("{} sporkliked {} {:?}", target, saidby, words);
+                            println!("{} sporkliked {} {:?}", responsenick, saidby, words);
                             s.start_with_word_like(words[1], saidby)
                         }
                     };
@@ -100,11 +104,11 @@ async fn main() -> irc::error::Result<()> {
                     match startw {
                         Some(word) => {
                             let mut words = sporker::build_words_like(word, &s, saidby);
-                            words.insert(0, target);
-                            client.send_privmsg(&channel, words.join(" ")).unwrap();
+                            words.insert(0, responsenick.to_string());
+                            client.send_privmsg(responseplace, words.join(" ")).unwrap();
                         }
                         _ => {
-                            client.send_privmsg(&channel, "Couldn't do it could I").unwrap();
+                            client.send_privmsg(responseplace, "Couldn't do it could I").unwrap();
                         }
                     }
                 },

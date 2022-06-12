@@ -6,7 +6,7 @@ extern crate botrick;
 use botrick::sporker;
 
 #[tokio::main]
-async fn main() -> irc::error::Result<()> {
+async fn main() -> botrick::Result<()> {
 
     let config = Config::load("config.toml")?;
     println!("{:?}", config);
@@ -31,7 +31,7 @@ async fn main() -> irc::error::Result<()> {
     let mut stream = client.stream()?;
     let sender = client.sender();
 
-    let command_re = Regex::new(r"^%(\S+)(\s*)").unwrap();
+    let command_re = Regex::new(r"^%(\S+)(\s*)")?;
 
     while let Some(message) = stream.next().await.transpose()? {
         if let Command::PRIVMSG(ref _channel, ref text) = message.command {
@@ -39,7 +39,7 @@ async fn main() -> irc::error::Result<()> {
             //     // send_privmsg comes from ClientExt
             //     // sender.send_privmsg(&channel, "beep boop").unwrap();
             // }
-            ltx.send(text.to_string()).await.unwrap();
+            ltx.send(text.to_string()).await?;
             let responseplace = message.response_target().unwrap();
             let responsenick = match message.source_nickname() {
                 Some(nick) => {
@@ -51,7 +51,7 @@ async fn main() -> irc::error::Result<()> {
             // println!("source_nickname: {:?} response_target {:?} message {:?}", message.source_nickname(), message.response_target(), message);
 
             if text.starts_with(".bots") {
-                sender.send_privmsg(responseplace, "Reporting in! [Rust] just %spork or %sporklike, yo.").unwrap();
+                sender.send_privmsg(responseplace, "Reporting in! [Rust] just %spork or %sporklike, yo.")?;
             }
 
             let maybe_cmd = command_re.captures(text);
@@ -79,10 +79,10 @@ async fn main() -> irc::error::Result<()> {
                         Some(word) => {
                             let mut words = sporker::build_words(word, &s);
                             words.insert(0, responsenick.to_string());
-                            sender.send_privmsg(responseplace, words.join(" ")).unwrap();
+                            sender.send_privmsg(responseplace, words.join(" "))?;
                         }
                         _ => {
-                            sender.send_privmsg(responseplace, "Couldn't do it could I").unwrap();
+                            sender.send_privmsg(responseplace, "Couldn't do it could I")?;
                         }
                     }
                 }

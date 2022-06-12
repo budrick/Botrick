@@ -1,7 +1,7 @@
 use irc::client::prelude::*;
 use futures::prelude::*;
 use regex::Regex;
-
+use tokio::sync::mpsc;
 extern crate botrick;
 use botrick::sporker;
 
@@ -9,14 +9,27 @@ use botrick::sporker;
 async fn main() -> irc::error::Result<()> {
 
     let config = Config::load("config.toml")?;
+    println!("{:?}", config);
+
+    // Logger thread
+    let (ltx, mut lrx) = mpsc::channel(32);
+    let _logger = tokio::spawn(async move {
+        // let db = sporker::getdb();
+        while let Some(_line) = lrx.recv().await {
+            // We need to do something with captured PRIVMSGs here
+            // Log them, for a start. Find some way to have multiple callbacks maybe?
+            // println!("Line: {}", line);
+        }
+    });
+
+    let db = sporker::getdb();
+    let s = sporker::Spork::new(db);
 
     let mut client = Client::from_config(config).await?;
     client.identify()?;
 
     let mut stream = client.stream()?;
-
-    let db = sporker::getdb();
-    let s = sporker::Spork::new(db);
+    let sender = client.sender();
 
     let command_re = Regex::new(r"^%(\S+)(\s*)").unwrap();
 
@@ -24,22 +37,21 @@ async fn main() -> irc::error::Result<()> {
         if let Command::PRIVMSG(ref _channel, ref text) = message.command {
             // if text.contains(&*client.current_nickname()) {
             //     // send_privmsg comes from ClientExt
-            //     // client.send_privmsg(&channel, "beep boop").unwrap();
+            //     // sender.send_privmsg(&channel, "beep boop").unwrap();
             // }
-
+            ltx.send(text.to_string()).await.unwrap();
             let responseplace = message.response_target().unwrap();
-            let msgnick = message.source_nickname();
-            let responsenick = match msgnick {
+            let responsenick = match message.source_nickname() {
                 Some(nick) => {
                     format!("{}:", nick)
                 }
                 _ => "".to_string()
             }.to_string();
     
-            // println!("source_nickname: {:?} response_target {:?} channel {:?}", message.source_nickname(), message.response_target(), channel);
+            // println!("source_nickname: {:?} response_target {:?} message {:?}", message.source_nickname(), message.response_target(), message);
 
             if text.starts_with(".bots") {
-                client.send_privmsg(responseplace, "Reporting in! [Rust] just %spork or %sporklike, yo.").unwrap();
+                sender.send_privmsg(responseplace, "Reporting in! [Rust] just %spork or %sporklike, yo.").unwrap();
             }
 
             let maybe_cmd = command_re.captures(text);
@@ -67,10 +79,10 @@ async fn main() -> irc::error::Result<()> {
                         Some(word) => {
                             let mut words = sporker::build_words(word, &s);
                             words.insert(0, responsenick.to_string());
-                            client.send_privmsg(responseplace, words.join(" ")).unwrap();
+                            sender.send_privmsg(responseplace, words.join(" ")).unwrap();
                         }
                         _ => {
-                            client.send_privmsg(responseplace, "Couldn't do it could I").unwrap();
+                            sender.send_privmsg(responseplace, "Couldn't do it could I").unwrap();
                         }
                     }
                 }
@@ -80,8 +92,8 @@ async fn main() -> irc::error::Result<()> {
                     let words: Vec<&str> = cmd_text.split_whitespace().collect();
 
                     // Fewer than 2 args? Go away.
-                    if words.len() < 1 {
-                        client.send_privmsg(responseplace, "Talking about nobody is it").unwrap();
+                    if words.is_empty() {
+                        sender.send_privmsg(responseplace, "Talking about nobody is it").unwrap();
                         continue;
                         // Ok(())
                     }
@@ -105,14 +117,16 @@ async fn main() -> irc::error::Result<()> {
                         Some(word) => {
                             let mut words = sporker::build_words_like(word, &s, saidby);
                             words.insert(0, responsenick.to_string());
-                            client.send_privmsg(responseplace, words.join(" ")).unwrap();
+                            sender.send_privmsg(responseplace, words.join(" ")).unwrap();
                         }
                         _ => {
-                            client.send_privmsg(responseplace, "Couldn't do it could I").unwrap();
+                            sender.send_privmsg(responseplace, "Couldn't do it could I").unwrap();
                         }
                     }
                 },
-                _ => continue
+                _ => {
+                    println!("We received a Totally Normal Message: {:?}", text);
+                }
             }
 
         }
@@ -120,3 +134,4 @@ async fn main() -> irc::error::Result<()> {
 
     Ok(())
 }
+

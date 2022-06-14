@@ -1,9 +1,11 @@
 use irc::client::prelude::*;
 use futures::prelude::*;
 use regex::Regex;
-use tokio::sync::mpsc;
+use tokio::sync::mpsc::{channel, Sender, Receiver};
 extern crate botrick;
 use botrick::sporker;
+
+type Channelizer = (Sender<Message>, Receiver<Message>);
 
 #[tokio::main]
 async fn main() -> botrick::Result<()> {
@@ -12,16 +14,26 @@ async fn main() -> botrick::Result<()> {
     println!("{:?}", config);
 
     // Logger thread
-    let (ltx, mut lrx) = mpsc::channel(32);
+    let (ltx, mut lrx): Channelizer = channel(32);
     let _logger = tokio::spawn(async move {
-        // let db = sporker::getdb();
-        while let Some(_line) = lrx.recv().await {
-            // We need to do something with captured PRIVMSGs here
-            // Log them, for a start. Find some way to have multiple callbacks maybe?
-            // println!("Line: {}", line);
+        let db = sporker::getdb();
+        let s = sporker::Spork::new(db);
+
+        while let Some(line) = lrx.recv().await {
+            let nick = line.source_nickname();
+            let cmd = line.command.clone();
+            if let Command::PRIVMSG(_, text) = cmd {
+                if !text.starts_with('\u{001}') || text.starts_with("\u{001}ACTION") {
+                    println!("Line: {:?}, {:?}", nick, text);
+                    if let Some(n) = nick {
+                        s.log_message(n, text.as_str());
+                    }
+                }
+            }
         }
     });
 
+    // Main thread stuff resumes here
     let db = sporker::getdb();
     let s = sporker::Spork::new(db);
 
@@ -39,7 +51,7 @@ async fn main() -> botrick::Result<()> {
             //     // send_privmsg comes from ClientExt
             //     // sender.send_privmsg(&channel, "beep boop").unwrap();
             // }
-            ltx.send(text.to_string()).await?;
+            ltx.send(message.clone()).await?;
             let responseplace = message.response_target().unwrap();
             let responsenick = match message.source_nickname() {
                 Some(nick) => {

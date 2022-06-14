@@ -89,3 +89,13 @@ pub fn search_prev_like(db: &Connection) -> CachedStatement<'_> {
         )
         LIMIT 1;").unwrap();
 }
+
+pub fn save_word(db: &Connection) -> CachedStatement<'_> {
+    return db.prepare_cached("INSERT INTO werdz (werd, nextwerd, prevwerd, saidby, normalizedsaidby) VALUES (
+        :werd,
+        :nextwerd,
+        :prevwerd,
+        :saidby,
+        lower(:saidby)
+    )").unwrap();
+}

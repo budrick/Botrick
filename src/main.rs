@@ -11,7 +11,7 @@ type Channelizer = (Sender<Message>, Receiver<Message>);
 async fn main() -> botrick::Result<()> {
 
     let config = Config::load("config.toml")?;
-    println!("{:?}", config);
+    // println!("{:?}", config);
 
     // Logger thread
     let (ltx, mut lrx): Channelizer = channel(32);
@@ -24,7 +24,7 @@ async fn main() -> botrick::Result<()> {
             let cmd = line.command.clone();
             if let Command::PRIVMSG(_, text) = cmd {
                 if !text.starts_with('\u{001}') || text.starts_with("\u{001}ACTION") {
-                    println!("Line: {:?}, {:?}", nick, text);
+                    // println!("Line: {:?}, {:?}", nick, text);
                     if let Some(n) = nick {
                         s.log_message(n, text.as_str());
                     }

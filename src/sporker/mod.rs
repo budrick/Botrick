@@ -1,5 +1,5 @@
+use regex::Regex;
 use rusqlite::{named_params, Connection};
-
 mod statements;
 
 // Represents a word record. Current word, and next and prev words.
@@ -90,9 +90,15 @@ impl std::fmt::Display for Foon {
     }
 }
 
+// pub struct Message {
+//     sender: String,
+//     words: Vec<String>,
+// }
+
 // A controller of sorts. Holds a database handle, has methods to fetch starting words.
 pub struct Spork {
-    db: Connection
+    db: Connection,
+    spacere: Regex,
 }
 
 impl Spork {
@@ -100,7 +106,8 @@ impl Spork {
     // Constructor
     pub fn new(db: Connection) -> Self {
         Spork {
-            db
+            db,
+            spacere: Regex::new(r"\s+").unwrap()
         }
     }
 
@@ -169,6 +176,27 @@ impl Spork {
     // Return an immutable reference to our DB
     pub fn get_db(&self) -> &Connection {
         &self.db
+    }
+
+    // Save a log line as a collection of word records
+    pub fn log_message(&self, who: &str, what: &str) {
+        let mut stmt = statements::save_word(&self.db);
+        let words: Vec<&str> = self.spacere.split(what).collect();
+        let words_iter = words.iter().enumerate();
+        if words.len() < 2 {
+            return;
+        }
+        for (i, word) in words_iter {
+            let mut prev: Option<&str> = None;
+            let mut next: Option<&str> = None;
+            if i != 0 {
+                prev = Some(words[i-1]);
+            }
+            if i != words.len() - 1 {
+                next = Some(words[i+1]);
+            }
+            let _res = stmt.execute(named_params!{":werd": word, ":nextwerd": next, ":prevwerd": prev, ":saidby": who});
+        }
     }
 }
 

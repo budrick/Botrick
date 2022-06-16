@@ -1,6 +1,7 @@
 use regex::Regex;
 use rusqlite::{named_params, Connection};
 mod statements;
+use anyhow::Result;
 
 // Represents a word record. Current word, and next and prev words.
 // Has methods to quickly retrieve the next and previous words from the DB.
@@ -201,14 +202,15 @@ impl Spork {
 }
 
 // Returns an SQLite DB handle
-pub fn getdb() -> Connection {
+pub fn getdb() -> Result<Connection> {
     // Overly Correctly construct a path to a DB file
-    let mut path = std::env::current_dir().unwrap();
+    let mut path = std::env::current_dir()?;
     path.push("data");
     path.push("werdz");
     path.set_extension("sqlite");
 
-    Connection::open(path).unwrap()
+    let h : Connection = Connection::open(path)?;
+    Ok(h)
 }
 
 // Does what it says. Given a start word and a Spork, do the needful.

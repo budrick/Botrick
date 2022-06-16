@@ -1,10 +1,11 @@
 use std::env;
 extern crate botrick;
 use crate::botrick::sporker;
+use anyhow::Result;
 
-fn main() {
+fn main() -> Result<()>{
     // Spin up the database, and a Spork to use it.
-    let db = sporker::getdb();
+    let db = sporker::getdb()?;
     let s = sporker::Spork::new(db);
 
     // Get all our cmdline args
@@ -13,7 +14,7 @@ fn main() {
     // Fewer than 2 args? Go away.
     if args.len() < 2 {
         println!("Talking about nobody is it");
-        return;
+        return Ok(());
     }
 
     let saidby = &args[1];
@@ -35,4 +36,5 @@ fn main() {
             println!("Talking about nobody and nothing is it");
         }
     }
+    Ok(())
 }

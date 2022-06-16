@@ -4,11 +4,12 @@ use regex::Regex;
 use tokio::sync::mpsc::{channel, Sender, Receiver};
 extern crate botrick;
 use botrick::sporker;
+use anyhow::Result;
 
 type Channelizer = (Sender<Message>, Receiver<Message>);
 
 #[tokio::main]
-async fn main() -> botrick::Result<()> {
+async fn main() -> Result<()> {
 
     let config = Config::load("config.toml")?;
     // println!("{:?}", config);
@@ -16,7 +17,7 @@ async fn main() -> botrick::Result<()> {
     // Logger thread
     let (ltx, mut lrx): Channelizer = channel(32);
     let _logger = tokio::spawn(async move {
-        let db = sporker::getdb();
+        let db = sporker::getdb().unwrap();
         let s = sporker::Spork::new(db);
 
         while let Some(line) = lrx.recv().await {
@@ -34,7 +35,7 @@ async fn main() -> botrick::Result<()> {
     });
 
     // Main thread stuff resumes here
-    let db = sporker::getdb();
+    let db = sporker::getdb()?;
     let s = sporker::Spork::new(db);
 
     let mut client = Client::from_config(config).await?;

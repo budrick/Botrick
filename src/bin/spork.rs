@@ -1,12 +1,12 @@
 use std::env;
-
+use anyhow::Result;
 extern crate botrick;
 use crate::botrick::sporker;
 
 
-fn main() {
+fn main() -> Result<()> {
     // Spin up the database, and a Spork to use it.
-    let db = sporker::getdb();
+    let db = sporker::getdb()?;
     let s = sporker::Spork::new(db);
 
     // Get all our cmdline args
@@ -29,4 +29,5 @@ fn main() {
             println!("Couldn't do it could I");
         }
     }
+    Ok(())
 }

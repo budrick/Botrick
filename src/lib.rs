@@ -1,13 +1,7 @@
+pub mod ircbot;
 pub mod sporker;
 
-#[derive(Debug)]
-struct Error;
-impl std::error::Error for Error {}
+use irc::proto::Message;
+use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 
-pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
-impl std::fmt::Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Went wrong didn't it")
-    }
-}
+pub type Channelizer = (UnboundedSender<Message>, UnboundedReceiver<Message>);

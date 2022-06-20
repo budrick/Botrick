@@ -13,68 +13,87 @@ pub struct Foon {
 }
 
 impl Foon {
-
     // Fetch the next word record. Returns the word record or None.
     pub fn next_word(&self, s: &Spork) -> Option<Foon> {
         let mut stmt = statements::search_next(s.get_db());
-        
-        let res = stmt.query_row(named_params!{":werd": self.next.clone(), ":prevwerd": self.werd}, |row| Ok(Foon{
-            werd: row.get(0)?,
-            next: row.get(1)?,
-            prev: row.get(2)?
-        }));
+
+        let res = stmt.query_row(
+            named_params! {":werd": self.next.clone(), ":prevwerd": self.werd},
+            |row| {
+                Ok(Foon {
+                    werd: row.get(0)?,
+                    next: row.get(1)?,
+                    prev: row.get(2)?,
+                })
+            },
+        );
 
         match res {
             Ok(r) => Some(r),
-            Err(_e) => None
+            Err(_e) => None,
         }
     }
 
     // Fetch the next word record. Returns the word record or None.
     pub fn next_word_like(&self, s: &Spork, saidby: &str) -> Option<Foon> {
         let mut stmt = statements::search_next_like(s.get_db());
-        
-        let res = stmt.query_row(named_params!{":werd": self.next.clone(), ":prevwerd": self.werd, ":saidby": saidby}, |row| Ok(Foon{
-            werd: row.get(0)?,
-            next: row.get(1)?,
-            prev: row.get(2)?
-        }));
+
+        let res = stmt.query_row(
+            named_params! {":werd": self.next.clone(), ":prevwerd": self.werd, ":saidby": saidby},
+            |row| {
+                Ok(Foon {
+                    werd: row.get(0)?,
+                    next: row.get(1)?,
+                    prev: row.get(2)?,
+                })
+            },
+        );
 
         match res {
             Ok(r) => Some(r),
-            Err(_e) => None
+            Err(_e) => None,
         }
     }
 
     // Fetch the previous word record. Returns the word record or None.
     pub fn prev_word(&self, s: &Spork) -> Option<Foon> {
         let mut stmt = statements::search_prev(s.get_db());
-        
-        let res = stmt.query_row(named_params!{":werd": self.prev.clone(), ":nextwerd": self.werd}, |row| Ok(Foon{
-            werd: row.get(0)?,
-            next: row.get(1)?,
-            prev: row.get(2)?
-        }));
+
+        let res = stmt.query_row(
+            named_params! {":werd": self.prev.clone(), ":nextwerd": self.werd},
+            |row| {
+                Ok(Foon {
+                    werd: row.get(0)?,
+                    next: row.get(1)?,
+                    prev: row.get(2)?,
+                })
+            },
+        );
 
         match res {
             Ok(r) => Some(r),
-            Err(_e) => None
+            Err(_e) => None,
         }
     }
 
     // Fetch the previous word record. Returns the word record or None.
     pub fn prev_word_like(&self, s: &Spork, saidby: &str) -> Option<Foon> {
         let mut stmt = statements::search_prev_like(s.get_db());
-        
-        let res = stmt.query_row(named_params!{":werd": self.prev.clone(), ":nextwerd": self.werd, ":saidby": saidby}, |row| Ok(Foon{
-            werd: row.get(0)?,
-            next: row.get(1)?,
-            prev: row.get(2)?
-        }));
+
+        let res = stmt.query_row(
+            named_params! {":werd": self.prev.clone(), ":nextwerd": self.werd, ":saidby": saidby},
+            |row| {
+                Ok(Foon {
+                    werd: row.get(0)?,
+                    next: row.get(1)?,
+                    prev: row.get(2)?,
+                })
+            },
+        );
 
         match res {
             Ok(r) => Some(r),
-            Err(_e) => None
+            Err(_e) => None,
         }
     }
 
@@ -87,7 +106,11 @@ impl Foon {
 // Implement the Display trait for word records, so we can println! them.
 impl std::fmt::Display for Foon {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "prev: {:?} word: {} next: {:?}", self.prev, self.werd, self.next)
+        write!(
+            f,
+            "prev: {:?} word: {} next: {:?}",
+            self.prev, self.werd, self.next
+        )
     }
 }
 
@@ -103,42 +126,45 @@ pub struct Spork {
 }
 
 impl Spork {
-
     // Constructor
     pub fn new(db: Connection) -> Self {
         Spork {
             db,
-            spacere: Regex::new(r"\s+").unwrap()
+            spacere: Regex::new(r"\s+").unwrap(),
         }
     }
 
     // Fetch a random start word record from the database.
     pub fn start(&self) -> Option<Foon> {
         let mut stmt = statements::random_start(&self.db);
-        let res = stmt.query_row([], |row| Ok(Foon{
-            werd: row.get(0)?,
-            next: row.get(1)?,
-            prev: row.get(2)?
-        }));
+        let res = stmt.query_row([], |row| {
+            Ok(Foon {
+                werd: row.get(0)?,
+                next: row.get(1)?,
+                prev: row.get(2)?,
+            })
+        });
 
         match res {
             Ok(x) => Some(x),
-            Err(_e) => None
+            Err(_e) => None,
         }
     }
 
     // Fetch a random start word record from the database.
     pub fn start_like(&self, saidby: &str) -> Option<Foon> {
         let mut stmt = statements::random_start_like(&self.db);
-        let res = stmt.query_row(named_params!{":saidby": saidby}, |row| Ok(Foon{
-            werd: row.get(0)?,
-            next: row.get(1)?,
-            prev: row.get(2)?
-        }));
+        let res = stmt.query_row(named_params! {":saidby": saidby}, |row| {
+            Ok(Foon {
+                werd: row.get(0)?,
+                next: row.get(1)?,
+                prev: row.get(2)?,
+            })
+        });
 
         match res {
             Ok(x) => Some(x),
-            Err(_e) => None
+            Err(_e) => None,
         }
     }
 
@@ -146,15 +172,17 @@ impl Spork {
     pub fn start_with_word<S: Into<String>>(&self, word: S) -> Option<Foon> {
         let word = word.into();
         let mut stmt = statements::search_start(&self.db);
-        let res = stmt.query_row(named_params!{":werd": word}, |row| Ok(Foon{
-            werd: row.get(0)?,
-            next: row.get(1)?,
-            prev: row.get(2)?
-        }));
+        let res = stmt.query_row(named_params! {":werd": word}, |row| {
+            Ok(Foon {
+                werd: row.get(0)?,
+                next: row.get(1)?,
+                prev: row.get(2)?,
+            })
+        });
 
         match res {
             Ok(x) => Some(x),
-            Err(_e) => None
+            Err(_e) => None,
         }
     }
 
@@ -162,15 +190,17 @@ impl Spork {
     pub fn start_with_word_like<S: Into<String>>(&self, word: S, saidby: &str) -> Option<Foon> {
         let word = word.into();
         let mut stmt = statements::search_start_like(&self.db);
-        let res = stmt.query_row(named_params!{":werd": word, ":saidby": saidby}, |row| Ok(Foon{
-            werd: row.get(0)?,
-            next: row.get(1)?,
-            prev: row.get(2)?
-        }));
+        let res = stmt.query_row(named_params! {":werd": word, ":saidby": saidby}, |row| {
+            Ok(Foon {
+                werd: row.get(0)?,
+                next: row.get(1)?,
+                prev: row.get(2)?,
+            })
+        });
 
         match res {
             Ok(x) => Some(x),
-            Err(_e) => None
+            Err(_e) => None,
         }
     }
 
@@ -191,12 +221,14 @@ impl Spork {
             let mut prev: Option<&str> = None;
             let mut next: Option<&str> = None;
             if i != 0 {
-                prev = Some(words[i-1]);
+                prev = Some(words[i - 1]);
             }
             if i != words.len() - 1 {
-                next = Some(words[i+1]);
+                next = Some(words[i + 1]);
             }
-            let _res = stmt.execute(named_params!{":werd": word, ":nextwerd": next, ":prevwerd": prev, ":saidby": who});
+            let _res = stmt.execute(
+                named_params! {":werd": word, ":nextwerd": next, ":prevwerd": prev, ":saidby": who},
+            );
         }
     }
 }
@@ -209,12 +241,12 @@ pub fn getdb() -> Result<Connection> {
     path.push("werdz");
     path.set_extension("sqlite");
 
-    let h : Connection = Connection::open(path)?;
+    let h: Connection = Connection::open(path)?;
     Ok(h)
 }
 
 // Does what it says. Given a start word and a Spork, do the needful.
-pub fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
+pub fn build_words(w: Foon, s: &Spork) -> Vec<String> {
     // let mut words = Vec::<String>::new();
     let mut words = vec![w.get()];
     let initword = &w;
@@ -239,7 +271,7 @@ pub fn build_words(w: Foon, s: &Spork) -> Vec::<String> {
 }
 
 // Does what it says. Given a start word and a Spork, do the needful.
-pub fn build_words_like(w: Foon, s: &Spork, saidby:&str) -> Vec::<String> {
+pub fn build_words_like(w: Foon, s: &Spork, saidby: &str) -> Vec<String> {
     // let mut words = Vec::<String>::new();
     let mut words = vec![w.get()];
     let initword = &w;

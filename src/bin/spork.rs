@@ -1,8 +1,7 @@
-use std::env;
 use anyhow::Result;
+use std::env;
 extern crate botrick;
 use crate::botrick::sporker;
-
 
 fn main() -> Result<()> {
     // Spin up the database, and a Spork to use it.
@@ -16,7 +15,7 @@ fn main() -> Result<()> {
     // Otherwise, find out own start word. With blackjack. And hookers.
     let startw = match args.len() {
         1 => s.start(),
-        _ => s.start_with_word(&args[1])
+        _ => s.start_with_word(&args[1]),
     };
 
     // If we have a start word, go with it. Otherwise, error out stupidly.

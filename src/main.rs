@@ -1,11 +1,9 @@
+use anyhow::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
-use regex::Regex;
 use tokio::sync::mpsc::unbounded_channel;
 
-use anyhow::Result;
-use botrick::sporker;
-use botrick::Channelizer;
+use botrick::{parse_command, sporker, BotCommand, Channelizer};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -42,15 +40,12 @@ async fn main() -> Result<()> {
     let mut stream = client.stream()?;
     let sender = client.sender();
 
-    let command_re = Regex::new(r"^%(\S+)(\s*)")?;
-
     while let Some(message) = stream.next().await.transpose()? {
         if let Command::PRIVMSG(ref _channel, ref text) = message.command {
             // if text.contains(&*client.current_nickname()) {
             //     // send_privmsg comes from ClientExt
             //     // sender.send_privmsg(&channel, "beep boop").unwrap();
             // }
-            ltx.send(message.clone())?;
             let responseplace = message.response_target().unwrap();
             let responsenick = match message.source_nickname() {
                 Some(nick) => {
@@ -62,28 +57,15 @@ async fn main() -> Result<()> {
 
             // println!("source_nickname: {:?} response_target {:?} message {:?}", message.source_nickname(), message.response_target(), message);
 
-            if text.starts_with(".bots") {
-                sender.send_privmsg(
-                    responseplace,
-                    "Reporting in! [Rust] just %spork or %sporklike, yo.",
-                )?;
-            }
-
-            let maybe_cmd = command_re.captures(text);
-            let (cmd, spaces): (&str, &str) = match maybe_cmd {
-                Some(matches) => (
-                    matches.get(1).unwrap().as_str(),
-                    matches.get(2).unwrap().as_str(),
-                ),
-                _ => continue,
-            };
-
-            let cmd_text = text
-                .strip_prefix(format!("%{}{}", cmd, spaces).as_str())
-                .unwrap();
-
+            let cmd = parse_command(text);
             match cmd {
-                "spork" => {
+                Some(BotCommand::Bots) => {
+                    sender.send_privmsg(
+                        responseplace,
+                        "Reporting in! [Rust] just %spork or %sporklike, yo.",
+                    )?;
+                }
+                Some(BotCommand::Spork(cmd_text)) => {
                     let words: Vec<&str> = cmd_text.split_whitespace().collect();
                     let startw = if !words.is_empty() {
                         println!("{} sporked {:?}", responsenick, words);
@@ -104,7 +86,7 @@ async fn main() -> Result<()> {
                         }
                     }
                 }
-                "sporklike" => {
+                Some(BotCommand::Sporklike(cmd_text)) => {
                     // Get all our cmdline args
                     let words: Vec<&str> = cmd_text.split_whitespace().collect();
 
@@ -146,7 +128,7 @@ async fn main() -> Result<()> {
                     }
                 }
                 _ => {
-                    println!("We received a Totally Normal Message: {:?}", text);
+                    ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
                 }
             }
         }

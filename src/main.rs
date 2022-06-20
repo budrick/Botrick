@@ -1,21 +1,19 @@
-use irc::client::prelude::*;
 use futures::prelude::*;
+use irc::client::prelude::*;
 use regex::Regex;
-use tokio::sync::mpsc::{channel, Sender, Receiver};
-extern crate botrick;
-use botrick::sporker;
-use anyhow::Result;
+use tokio::sync::mpsc::unbounded_channel;
 
-type Channelizer = (Sender<Message>, Receiver<Message>);
+use anyhow::Result;
+use botrick::sporker;
+use botrick::Channelizer;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-
     let config = Config::load("config.toml")?;
     // println!("{:?}", config);
 
     // Logger thread
-    let (ltx, mut lrx): Channelizer = channel(32);
+    let (ltx, mut lrx): Channelizer = unbounded_channel();
     let _logger = tokio::spawn(async move {
         let db = sporker::getdb().unwrap();
         let s = sporker::Spork::new(db);
@@ -52,30 +50,37 @@ async fn main() -> Result<()> {
             //     // send_privmsg comes from ClientExt
             //     // sender.send_privmsg(&channel, "beep boop").unwrap();
             // }
-            ltx.send(message.clone()).await?;
+            ltx.send(message.clone())?;
             let responseplace = message.response_target().unwrap();
             let responsenick = match message.source_nickname() {
                 Some(nick) => {
                     format!("{}:", nick)
                 }
-                _ => "".to_string()
-            }.to_string();
-    
+                _ => "".to_string(),
+            }
+            .to_string();
+
             // println!("source_nickname: {:?} response_target {:?} message {:?}", message.source_nickname(), message.response_target(), message);
 
             if text.starts_with(".bots") {
-                sender.send_privmsg(responseplace, "Reporting in! [Rust] just %spork or %sporklike, yo.")?;
+                sender.send_privmsg(
+                    responseplace,
+                    "Reporting in! [Rust] just %spork or %sporklike, yo.",
+                )?;
             }
 
             let maybe_cmd = command_re.captures(text);
             let (cmd, spaces): (&str, &str) = match maybe_cmd {
-                Some(matches) => {
-                    (matches.get(1).unwrap().as_str(), matches.get(2).unwrap().as_str())
-                }
-                _ => continue
+                Some(matches) => (
+                    matches.get(1).unwrap().as_str(),
+                    matches.get(2).unwrap().as_str(),
+                ),
+                _ => continue,
             };
 
-            let cmd_text = text.strip_prefix(format!("%{}{}", cmd, spaces).as_str()).unwrap();
+            let cmd_text = text
+                .strip_prefix(format!("%{}{}", cmd, spaces).as_str())
+                .unwrap();
 
             match cmd {
                 "spork" => {
@@ -100,13 +105,14 @@ async fn main() -> Result<()> {
                     }
                 }
                 "sporklike" => {
-
                     // Get all our cmdline args
                     let words: Vec<&str> = cmd_text.split_whitespace().collect();
 
                     // Fewer than 2 args? Go away.
                     if words.is_empty() {
-                        sender.send_privmsg(responseplace, "Talking about nobody is it").unwrap();
+                        sender
+                            .send_privmsg(responseplace, "Talking about nobody is it")
+                            .unwrap();
                         continue;
                         // Ok(())
                     }
@@ -117,9 +123,9 @@ async fn main() -> Result<()> {
                     // Otherwise, find out own start word. With blackjack. And hookers.
                     let startw = match words.len() {
                         1 => {
-                        println!("{} sporkliked {}", responsenick, saidby);
+                            println!("{} sporkliked {}", responsenick, saidby);
                             s.start_like(saidby)
-                        },
+                        }
                         _ => {
                             println!("{} sporkliked {} {:?}", responsenick, saidby, words);
                             s.start_with_word_like(words[1], saidby)
@@ -133,18 +139,18 @@ async fn main() -> Result<()> {
                             sender.send_privmsg(responseplace, words.join(" ")).unwrap();
                         }
                         _ => {
-                            sender.send_privmsg(responseplace, "Couldn't do it could I").unwrap();
+                            sender
+                                .send_privmsg(responseplace, "Couldn't do it could I")
+                                .unwrap();
                         }
                     }
-                },
+                }
                 _ => {
                     println!("We received a Totally Normal Message: {:?}", text);
                 }
             }
-
         }
     }
 
     Ok(())
 }
-

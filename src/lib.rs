@@ -1,6 +1,6 @@
 pub mod sporker;
 
-use irc::proto::Message;
+use irc::{proto::Message, client::Sender};
 use lazy_static::lazy_static;
 use regex::Regex;
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
@@ -14,6 +14,13 @@ pub enum BotCommand {
     Sporklike(String),
     Bots,
 }
+
+// pub struct BotCommandMessage {
+//     command: BotCommand,
+//     message: Message,
+//     place: String,
+//     nick: String,
+// }
 
 // Convenient Result type. Commands always give back a String for output, or an error.
 type BotrickResult = Result<String, Box<dyn std::error::Error>>;
@@ -58,16 +65,16 @@ pub fn should_log(msg: String) -> bool {
 }
 
 // Dispatch handlers for BotCommands
-pub fn handle_command(cmd: BotCommand) -> BotrickResult {
+pub fn handle_command(cmd: BotCommand, place: &str, sender: Sender) -> BotrickResult {
     match cmd {
-        BotCommand::Bots => handle_bots(),
-        BotCommand::Spork(text) => handle_spork(text),
-        BotCommand::Sporklike(text) => handle_sporklike(text),
+        BotCommand::Bots => handle_bots(place, sender),
+        BotCommand::Spork(text) => handle_spork(text, place, sender),
+        BotCommand::Sporklike(text) => handle_sporklike(text, place, sender),
     }
 }
 
 // Handle the `spork` command
-pub fn handle_spork(text: String) -> BotrickResult {
+pub fn handle_spork(text: String, _place: &str, _sender: Sender) -> BotrickResult {
     let db = sporker::getdb()?;
     let s = sporker::Spork::new(db);
 
@@ -88,7 +95,7 @@ pub fn handle_spork(text: String) -> BotrickResult {
 }
 
 // handle the `sporklike` commands
-pub fn handle_sporklike(text: String) -> BotrickResult {
+pub fn handle_sporklike(text: String, _place: &str, _sender: Sender) -> BotrickResult {
     let db = sporker::getdb()?;
     let s = sporker::Spork::new(db);
 
@@ -123,6 +130,10 @@ pub fn handle_sporklike(text: String) -> BotrickResult {
 }
 
 // Handle the `.bots` command
-fn handle_bots() -> BotrickResult {
+fn handle_bots(_place: &str, _sender: Sender) -> BotrickResult {
+    // match sender.send_privmsg(place, "I AM A SEND") {
+    //     Ok(_) => println!("Sent"),
+    //     Err(e) => println!("{:?}", e)
+    // }
     Ok("Reporting in! [Rust] just %spork or %sporklike, yo.".to_string())
 }

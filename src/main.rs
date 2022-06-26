@@ -7,7 +7,7 @@ use botrick::{handle_command, parse_command, sporker, Channelizer};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Logger task
+    // Logger thread
     let (ltx, mut lrx): Channelizer = unbounded_channel();
     let _logger = tokio::spawn(async move {
         let db = sporker::getdb().unwrap();
@@ -58,7 +58,7 @@ async fn main() -> Result<()> {
             match cmd {
                 Some(command) => {
                     println!("{}{:?}", responsenick, command);
-                    let result = match handle_command(command) {
+                    let result = match handle_command(command, responseplace, sender.clone()) {
                         Ok(message) => {
                             format!("{}{}", responsenick, message)
                         }

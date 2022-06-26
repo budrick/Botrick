@@ -7,7 +7,7 @@ use botrick::{handle_command, parse_command, sporker, Channelizer};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Logger thread
+    // Logger task
     let (ltx, mut lrx): Channelizer = unbounded_channel();
     let _logger = tokio::spawn(async move {
         let db = sporker::getdb().unwrap();

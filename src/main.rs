@@ -63,7 +63,7 @@ async fn main() -> Result<()> {
                             format!("{}{}", responsenick, message)
                         }
                         Err(message) => {
-                            format!("Bot Error: {}", message)
+                            message.to_string()
                         }
                     };
 

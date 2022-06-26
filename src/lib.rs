@@ -14,7 +14,7 @@ pub enum BotCommand {
     Bots,
 }
 
-pub type BotrickResult = Result<String, Box<dyn std::error::Error>>;
+type BotrickResult = Result<String, Box<dyn std::error::Error>>;
 
 pub fn parse_command(text: &str) -> Option<BotCommand> {
     lazy_static! {
@@ -77,7 +77,7 @@ pub fn handle_spork(text: String) -> BotrickResult {
     }
 }
 
-pub fn handle_sporklike(text: String) -> Result<String, Box<dyn std::error::Error>> {
+pub fn handle_sporklike(text: String) -> BotrickResult {
     let db = sporker::getdb()?;
     let s = sporker::Spork::new(db);
 
@@ -95,11 +95,9 @@ pub fn handle_sporklike(text: String) -> Result<String, Box<dyn std::error::Erro
     // Otherwise, find out own start word. With blackjack. And hookers.
     let startw = match words.len() {
         1 => {
-            // println!("{} sporkliked {}", responsenick, saidby);
             s.start_like(saidby)
         }
         _ => {
-            // println!("{} sporkliked {} {:?}", responsenick, saidby, words);
             s.start_with_word_like(words[1], saidby)
         }
     };
@@ -107,13 +105,12 @@ pub fn handle_sporklike(text: String) -> Result<String, Box<dyn std::error::Erro
     match startw {
         Some(word) => {
             let words = sporker::build_words_like(word, &s, saidby);
-            // words.insert(0, responsenick.to_string());
             Ok(words.join(" "))
         }
         _ => Err("Couldn't do it could I".into()),
     }
 }
 
-fn handle_bots() -> Result<String, Box<dyn std::error::Error>> {
+fn handle_bots() -> BotrickResult {
     Ok("Reporting in! [Rust] just %spork or %sporklike, yo.".to_string())
 }

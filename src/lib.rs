@@ -7,6 +7,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 
 pub type Channelizer = (UnboundedSender<Message>, UnboundedReceiver<Message>);
 
+// Valid bot command types and their parameters
 #[derive(Debug)]
 pub enum BotCommand {
     Spork(String),
@@ -14,13 +15,18 @@ pub enum BotCommand {
     Bots,
 }
 
+// Convenient Result type. Commands always give back a String for output, or an error.
 type BotrickResult = Result<String, Box<dyn std::error::Error>>;
 
+// Take a string representing the text of an IRC PRIVMSG, and figure out if it has a command in it.
+// Run the command if it exists
 pub fn parse_command(text: &str) -> Option<BotCommand> {
     lazy_static! {
         static ref COMMAND_RE: Regex = Regex::new(r"^%(\S+)(\s*)").unwrap();
     }
 
+    // Short-circuit command parsing for `.bots`
+    // .bots is a special case that doesn't use our regular prefix
     if text.starts_with(".bots") {
         return Some(BotCommand::Bots);
     }
@@ -45,10 +51,13 @@ pub fn parse_command(text: &str) -> Option<BotCommand> {
     }
 }
 
+// Given a string, check whether it should be logged.
+// Currently, CTCP messages other than ACTION are not logged.
 pub fn should_log(msg: String) -> bool {
     !msg.starts_with('\u{001}') || msg.starts_with("\u{001}ACTION")
 }
 
+// Dispatch handlers for BotCommands
 pub fn handle_command(cmd: BotCommand) -> BotrickResult {
     match cmd {
         BotCommand::Bots => handle_bots(),
@@ -57,6 +66,7 @@ pub fn handle_command(cmd: BotCommand) -> BotrickResult {
     }
 }
 
+// Handle the `spork` command
 pub fn handle_spork(text: String) -> BotrickResult {
     let db = sporker::getdb()?;
     let s = sporker::Spork::new(db);
@@ -77,6 +87,7 @@ pub fn handle_spork(text: String) -> BotrickResult {
     }
 }
 
+// handle the `sporklike` commands
 pub fn handle_sporklike(text: String) -> BotrickResult {
     let db = sporker::getdb()?;
     let s = sporker::Spork::new(db);
@@ -111,6 +122,7 @@ pub fn handle_sporklike(text: String) -> BotrickResult {
     }
 }
 
+// Handle the `.bots` command
 fn handle_bots() -> BotrickResult {
     Ok("Reporting in! [Rust] just %spork or %sporklike, yo.".to_string())
 }

@@ -1,7 +1,7 @@
 pub mod bot;
 pub mod sporker;
 
-use irc::{proto::Message};
+use irc::proto::Message;
 
 use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 

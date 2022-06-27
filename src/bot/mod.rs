@@ -1,5 +1,6 @@
 use crate::sporker;
 use anyhow::Context;
+use irc::client::Sender;
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -54,16 +55,19 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
     }
 }
 
-pub fn prepend_nick(nick: &String) -> String {
+pub fn mention_nick(nick: &str) -> String {
     format!("{}: ", nick)
 }
 
 // Dispatch handlers for BotCommands
-pub fn handle_command_message(cmd: CommandMessage, sender: irc::client::Sender) -> CommandResult {
-    match cmd.command.as_str() {
-        ".bots" => BotsCommand::execute(cmd, sender),
-        "spork" => SporkCommand::execute(cmd, sender),
-        "sporklike" => SporklikeCommand::execute(cmd, sender),
+pub fn handle_command_message(
+    command: CommandMessage,
+    sender: irc::client::Sender,
+) -> CommandResult {
+    match command.command.as_str() {
+        ".bots" => BotsCommand { command, sender }.execute(),
+        "spork" => SporkCommand { command, sender }.execute(),
+        "sporklike" => SporklikeCommand { command, sender }.execute(),
         _ => Ok(()),
     }
 }
@@ -71,9 +75,9 @@ pub fn handle_command_message(cmd: CommandMessage, sender: irc::client::Sender) 
 pub type CommandResult = anyhow::Result<()>;
 
 pub trait Command {
-    fn execute(command: CommandMessage, sender: irc::client::Sender) -> CommandResult;
+    fn execute(&self) -> CommandResult;
 }
-
+#[derive(Debug, Clone)]
 pub struct CommandMessage {
     pub command: String,
     pub text: String,
@@ -81,25 +85,31 @@ pub struct CommandMessage {
     pub nick: String,
 }
 
-pub struct BotsCommand;
+pub struct BotsCommand {
+    sender: Sender,
+    command: CommandMessage,
+}
 impl Command for BotsCommand {
-    fn execute(command: CommandMessage, sender: irc::client::Sender) -> CommandResult {
-        sender
+    fn execute(&self) -> CommandResult {
+        self.sender
             .send_privmsg(
-                command.channel,
+                &self.command.channel,
                 String::from("Reporting in! [Rust] just %spork or %sporklike, yo."),
             )
             .with_context(|| "Failed to send message")
     }
 }
 
-pub struct SporkCommand;
+pub struct SporkCommand {
+    sender: Sender,
+    command: CommandMessage,
+}
 impl Command for SporkCommand {
-    fn execute(command: CommandMessage, sender: irc::client::Sender) -> CommandResult {
+    fn execute(&self) -> CommandResult {
         let db = sporker::getdb()?;
         let s = sporker::Spork::new(db);
 
-        let words: Vec<&str> = command.text.split_whitespace().collect();
+        let words: Vec<&str> = self.command.text.split_whitespace().collect();
         let startw = if !words.is_empty() {
             s.start_with_word(words[0])
         } else {
@@ -109,32 +119,39 @@ impl Command for SporkCommand {
         let output: String = match startw {
             Some(word) => {
                 let mut words = sporker::build_words(word, &s);
-                words.insert(0, prepend_nick(&command.nick));
+                words.insert(0, mention_nick(&self.command.nick));
                 words.join(" ")
             }
             _ => String::from("Couldn't do it could I"),
         };
 
-        sender
-            .send_privmsg(command.channel, output)
+        self.sender
+            .send_privmsg(&self.command.channel, output)
             .with_context(|| "Failed to send message")
     }
 }
 
-pub struct SporklikeCommand;
+pub struct SporklikeCommand {
+    sender: Sender,
+    command: CommandMessage,
+}
 impl Command for SporklikeCommand {
-    fn execute(command: CommandMessage, sender: irc::client::Sender) -> CommandResult {
+    fn execute(&self) -> CommandResult {
         let db = sporker::getdb()?;
         let s = sporker::Spork::new(db);
 
         // Get all our cmdline args
-        let words: Vec<&str> = command.text.split_whitespace().collect();
+        let words: Vec<&str> = self.command.text.split_whitespace().collect();
 
         // Fewer than 2 args? Go away.
         if words.is_empty() {
-            return sender
-                .send_privmsg(command.channel, String::from("Talking about nobody is it"))
-                .with_context(|| format!("Failed to send message"));
+            return self
+                .sender
+                .send_privmsg(
+                    &self.command.channel,
+                    String::from("Talking about nobody is it"),
+                )
+                .with_context(|| String::from("Failed to send message"));
         }
 
         let saidby = words[0];
@@ -149,14 +166,14 @@ impl Command for SporklikeCommand {
         let output: String = match startw {
             Some(word) => {
                 let mut words = sporker::build_words_like(word, &s, saidby);
-                words.insert(0, prepend_nick(&command.nick));
+                words.insert(0, mention_nick(&self.command.nick));
                 words.join(" ")
             }
             _ => String::from("Couldn't do it could I"),
         };
 
-        sender
-            .send_privmsg(command.channel, output)
+        self.sender
+            .send_privmsg(&self.command.channel, output)
             .with_context(|| "Failed to send message")
     }
 }

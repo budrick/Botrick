@@ -1,5 +1,5 @@
 use crate::sporker;
-use anyhow::{Context, Result, anyhow};
+use anyhow::{Context, anyhow};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -69,12 +69,12 @@ fn get_command_handler(command: CommandMessage, sender: Sender) -> Option<Box<dy
 }
 
 // Dispatch handlers for BotCommands
-pub fn handle_command_message(command: CommandMessage, sender: Sender) -> Result<()> {
+pub fn handle_command_message(command: CommandMessage, sender: Sender) -> CommandResult {
     let handler = get_command_handler(command.clone(), sender);
-    if handler.is_some() {
-        return handler.unwrap().execute();
+    if let Some(handler) = handler {
+        handler.execute()
     } else {
-        return Err(anyhow!("Could not find command handler for `{}`", command.command));
+        Err(anyhow!("Could not find command handler for `{}`", command.command))
     }
 }
 

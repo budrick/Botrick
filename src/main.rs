@@ -49,7 +49,9 @@ async fn main() -> Result<()> {
                         botrick::bot::mention_nick(&command.nick),
                         command.command
                     );
-                    botrick::bot::handle_command_message(command, sender.clone())?
+                    match botrick::bot::handle_command_message(command, sender.clone()) {
+                        _ => continue,
+                    }
                 }
                 _ => {
                     ltx.send(message.clone())?; // Log the message if it isn't a valid command to us

@@ -1,11 +1,11 @@
 use crate::sporker;
-use anyhow::Context;
-use irc::client::Sender;
+use anyhow::{Context, Result, anyhow};
+use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
 
 pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
-    if let irc::proto::Command::PRIVMSG(ref _channel, ref text) = message.command {
+    if let PRIVMSG(ref _channel, ref text) = message.command {
         lazy_static! {
             static ref COMMAND_RE: Regex = Regex::new(r"^%(\S+)(\s*)").unwrap();
         }
@@ -56,23 +56,30 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
 }
 
 pub fn mention_nick(nick: &str) -> String {
-    format!("{}: ", nick)
+    format!("{}:", nick)
+}
+
+fn get_command_handler(command: CommandMessage, sender: Sender) -> Option<Box<dyn Command>> {
+    match command.command.as_str() {
+        ".bots" => Some(Box::new(BotsCommand { command, sender})),
+        "spork" => Some(Box::new(SporkCommand { command, sender })),
+        "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
+        _ => None
+    }
 }
 
 // Dispatch handlers for BotCommands
-pub fn handle_command_message(
-    command: CommandMessage,
-    sender: irc::client::Sender,
-) -> CommandResult {
-    match command.command.as_str() {
-        ".bots" => BotsCommand { command, sender }.execute(),
-        "spork" => SporkCommand { command, sender }.execute(),
-        "sporklike" => SporklikeCommand { command, sender }.execute(),
-        _ => Ok(()),
+pub fn handle_command_message(command: CommandMessage, sender: Sender) -> Result<()> {
+    let handler = get_command_handler(command.clone(), sender);
+    if handler.is_some() {
+        return handler.unwrap().execute();
+    } else {
+        return Err(anyhow!("Could not find command handler for `{}`", command.command));
     }
 }
 
 pub type CommandResult = anyhow::Result<()>;
+// type CommandHandlerResult = anyhow::Result<Box<dyn Command>>;
 
 pub trait Command {
     fn execute(&self) -> CommandResult;

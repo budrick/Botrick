@@ -3,7 +3,7 @@ use futures::prelude::*;
 use irc::client::prelude::*;
 use tokio::sync::mpsc::unbounded_channel;
 
-use botrick::{handle_command, parse_command, sporker, Channelizer};
+use botrick::{sporker, Channelizer};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -34,45 +34,24 @@ async fn main() -> Result<()> {
     let sender = client.sender();
 
     while let Some(message) = stream.next().await.transpose()? {
-        if let Command::PRIVMSG(ref _channel, ref text) = message.command {
+        if let Command::PRIVMSG(ref _channel, ref _text) = message.command {
             // Left for demonstrative purposes: Quick and dirty example of listening for bot's own nick
             // if text.contains(&*client.current_nickname()) {
             //     // send_privmsg comes from ClientExt
             //     // sender.send_privmsg(&channel, "beep boop").unwrap();
             // }
 
-            // Determine where to send responses, and who to ping if applicable.
-            let responseplace = message.response_target().unwrap();
-            let responsenick = match message.source_nickname() {
-                Some(nick) => {
-                    format!("{}: ", nick)
-                }
-                _ => "".to_string(),
-            }
-            .to_string();
-
-            // Attempt to parse out a valid command from the line.
-            // If it's a valid bot command, call a handler and send back the response.
-            // If it's just a regular PRIVMSG, send it to the logger task.
-            let cmd = parse_command(text);
+            let cmd = botrick::bot::parse_command(&message);
             match cmd {
                 Some(command) => {
-                    println!("{}{:?}", responsenick, command);
-                    let result = match handle_command(command, responseplace, sender.clone()) {
-                        Ok(message) => {
-                            format!("{}{}", responsenick, message)
-                        }
-                        Err(message) => {
-                            message.to_string()
-                        }
-                    };
-
-                    sender.send_privmsg(responseplace, result)?;
+                    println!("{}{}", botrick::bot::prepend_nick(&command.nick), command.command);
+                    botrick::bot::handle_command_message(command, sender.clone())?
                 }
                 _ => {
                     ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
                 }
             }
+
         }
     }
 

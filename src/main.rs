@@ -44,14 +44,17 @@ async fn main() -> Result<()> {
             let cmd = botrick::bot::parse_command(&message);
             match cmd {
                 Some(command) => {
-                    println!("{}{}", botrick::bot::prepend_nick(&command.nick), command.command);
+                    println!(
+                        "{} {}",
+                        botrick::bot::mention_nick(&command.nick),
+                        command.command
+                    );
                     botrick::bot::handle_command_message(command, sender.clone())?
                 }
                 _ => {
                     ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
                 }
             }
-
         }
     }
 

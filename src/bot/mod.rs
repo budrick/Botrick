@@ -1,5 +1,5 @@
 use crate::sporker;
-use anyhow::{Context, anyhow};
+use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -61,10 +61,10 @@ pub fn mention_nick(nick: &str) -> String {
 
 fn get_command_handler(command: CommandMessage, sender: Sender) -> Option<Box<dyn Command>> {
     match command.command.as_str() {
-        ".bots" => Some(Box::new(BotsCommand { command, sender})),
+        ".bots" => Some(Box::new(BotsCommand { command, sender })),
         "spork" => Some(Box::new(SporkCommand { command, sender })),
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
-        _ => None
+        _ => None,
     }
 }
 
@@ -74,7 +74,10 @@ pub fn handle_command_message(command: CommandMessage, sender: Sender) -> Comman
     if let Some(handler) = handler {
         handler.execute()
     } else {
-        Err(anyhow!("Could not find command handler for `{}`", command.command))
+        Err(anyhow!(
+            "Could not find command handler for `{}`",
+            command.command
+        ))
     }
 }
 

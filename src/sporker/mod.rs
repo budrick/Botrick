@@ -3,6 +3,9 @@ use rusqlite::{named_params, Connection};
 mod statements;
 use anyhow::Result;
 
+// List of blocked initial words
+static BLOCKLIST: [&str; 2] = ["!speak", "!talklike"];
+
 // Represents a word record. Current word, and next and prev words.
 // Has methods to quickly retrieve the next and previous words from the DB.
 #[derive(Debug)]
@@ -120,6 +123,7 @@ impl std::fmt::Display for Foon {
 // }
 
 // A controller of sorts. Holds a database handle, has methods to fetch starting words.
+#[derive(Debug)]
 pub struct Spork {
     db: Connection,
     spacere: Regex,
@@ -214,9 +218,18 @@ impl Spork {
         let mut stmt = statements::save_word(&self.db);
         let words: Vec<&str> = self.spacere.split(what).collect();
         let words_iter = words.iter().enumerate();
+
+        // Single word? Don't even try.
         if words.len() < 2 {
             return;
         }
+
+        // If the first word is in our blocklist, ignore it.
+        if BLOCKLIST.contains(&words[0]) {
+            return;
+        }
+
+        // Otherwise, LET'S LOGGING
         for (i, word) in words_iter {
             let mut prev: Option<&str> = None;
             let mut next: Option<&str> = None;

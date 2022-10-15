@@ -7,6 +7,7 @@ default-run = "botrick"
 
 [dependencies]
 anyhow = "1.0.57"
+clap = { version = "4.0.15", features = ["derive"] }
 futures = "0.3.21"
 irc = "0.15.0"
 lazy_static = "1.4.0"

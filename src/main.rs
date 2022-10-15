@@ -1,12 +1,18 @@
 use anyhow::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
+use std::fs;
 use tokio::sync::mpsc::unbounded_channel;
-
-use botrick::{sporker, Channelizer};
+use botrick::{sporker, Channelizer, args};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+
+    // Parse command-line args, and set the working directory. Let it fail fast.
+    let args = args::parse();
+    let dir = fs::canonicalize(args.dir.unwrap())?;
+    std::env::set_current_dir(dir)?;
+
     // Logger thread
     let (ltx, mut lrx): Channelizer = unbounded_channel();
     let _logger = tokio::spawn(async move {
@@ -49,9 +55,10 @@ async fn main() -> Result<()> {
                         botrick::bot::mention_nick(&command.nick),
                         command.command
                     );
-                    match botrick::bot::handle_command_message(command, sender.clone()) {
-                        _ => continue,
-                    }
+                    _ = botrick::bot::handle_command_message(command, sender.clone());
+                    // match botrick::bot::handle_command_message(command, sender.clone()) {
+                    //     _ => continue,
+                    // }
                 }
                 _ => {
                     ltx.send(message.clone())?; // Log the message if it isn't a valid command to us

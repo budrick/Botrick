@@ -1,5 +1,6 @@
 pub mod bot;
 pub mod sporker;
+pub mod args;
 
 use irc::proto::Message;
 

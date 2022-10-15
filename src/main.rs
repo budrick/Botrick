@@ -33,7 +33,8 @@ async fn main() -> Result<()> {
     });
 
     // Spin up IRC loop
-    let mut client = Client::from_config(Config::load("config.toml")?).await?;
+    let config = Config::load("config.toml")?;
+    let mut client = Client::from_config(config).await?;
     client.identify()?;
 
     let mut stream = client.stream()?;

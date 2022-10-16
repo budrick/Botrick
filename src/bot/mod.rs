@@ -21,7 +21,7 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
                 nick: String::from(responsenick),
                 channel: String::from(responsetarget),
                 command: String::from(".bots"),
-                text: String::from(""),
+                params: String::from(""),
             });
         }
 
@@ -32,13 +32,27 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
                 matches.get(1).unwrap().as_str(),
                 matches.get(2).unwrap().as_str(),
             ),
-            _ => ("", ""),
+            // No (probable) commands? Make an attempt at getting links, and dispatch a special builtin
+            _ => {
+                ("default", "")    
+            },
         };
 
-        // Command text is the rest of the line minus the command + space prefix
-        let cmd_text = text
-            .strip_prefix(format!("%{}{}", cmd, spaces).as_str())
-            .map_or("", |v| v);
+        // Command text is the rest of the line minus the command + space prefix.
+        // Default command gets special treatment - the whole privmsg is passed as
+        // the params since there's no prefix to strip.
+        let cmd_text = match cmd {
+            "default" => text.as_str(),
+            _ => {
+                text
+                    .strip_prefix(format!("%{}{}", cmd, spaces).as_str())
+                    .map_or("", |v| v)
+            }
+        };
+
+        // let cmd_text = text
+        //     .strip_prefix(format!("%{}{}", cmd, spaces).as_str())
+        //     .map_or("", |v| v);
 
         // If there is a valid command, create a CommandMessage to pass around to handlers.
         match cmd {
@@ -47,7 +61,7 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
                 nick: String::from(responsenick),
                 channel: String::from(responsetarget),
                 command: String::from(cmd),
-                text: String::from(cmd_text),
+                params: String::from(cmd_text),
             }),
         }
     } else {
@@ -59,8 +73,42 @@ pub fn mention_nick(nick: &str) -> String {
     format!("{}:", nick)
 }
 
+pub fn get_urls(message: &str)->Vec<linkify::Link> {
+    let mut linkfinder = linkify::LinkFinder::new();
+    linkfinder.kinds(&[linkify::LinkKind::Url]);
+    linkfinder.links(message).collect()
+}
+
+pub async fn get_url_title(url: &str) -> Option<String> {
+    if url.is_empty() {
+        return None;
+    }
+    let response_o = reqwest::get(url).await;
+    if response_o.is_err() {
+        return None;
+    }
+    let response = response_o.unwrap();
+    let content_type = response.headers().get("content-type");
+    // if content_type.is_none() {
+    //     return None;
+    // }
+    content_type?; // weeeeeeird
+    if content_type.unwrap().to_str().unwrap_or_default().starts_with("text/html") {
+        let body = response.text().await.unwrap_or_default();
+        let doc = select::document::Document::from(body.as_str());
+        let f:Vec<_> = doc.find(select::predicate::Name("title")).take(1).collect();
+        if f.is_empty() {
+            return None;
+        }
+        Some(f[0].text())
+    } else {
+        None
+    }
+}
+
 fn get_command_handler(command: CommandMessage, sender: Sender) -> Option<Box<dyn Command>> {
     match command.command.as_str() {
+        "default" => Some(Box::new(DefaultCommand { command, sender })),
         ".bots" => Some(Box::new(BotsCommand { command, sender })),
         "spork" => Some(Box::new(SporkCommand { command, sender })),
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
@@ -90,9 +138,30 @@ pub trait Command {
 #[derive(Debug, Clone)]
 pub struct CommandMessage {
     pub command: String,
-    pub text: String,
+    pub params: String,
     pub channel: String,
     pub nick: String,
+}
+
+pub struct DefaultCommand {
+    sender: Sender,
+    command: CommandMessage,
+}
+impl Command for DefaultCommand {
+    fn execute(&self) -> CommandResult {
+        println!("{:#?}", self.command);
+        let urls = get_urls(self.command.params.as_str());
+        if urls.is_empty() {
+            return Ok(());
+        }
+
+        self.sender
+            .send_privmsg(
+                &self.command.channel,
+                format!("We found at least one URL: {}", urls[0].as_str()),
+            )
+            .with_context(|| "Failed to send message")
+    }
 }
 
 pub struct BotsCommand {
@@ -119,7 +188,7 @@ impl Command for SporkCommand {
         let db = sporker::getdb()?;
         let s = sporker::Spork::new(db);
 
-        let words: Vec<&str> = self.command.text.split_whitespace().collect();
+        let words: Vec<&str> = self.command.params.split_whitespace().collect();
         let startw = if !words.is_empty() {
             s.start_with_word(words[0])
         } else {
@@ -151,7 +220,7 @@ impl Command for SporklikeCommand {
         let s = sporker::Spork::new(db);
 
         // Get all our cmdline args
-        let words: Vec<&str> = self.command.text.split_whitespace().collect();
+        let words: Vec<&str> = self.command.params.split_whitespace().collect();
 
         // Fewer than 2 args? Go away.
         if words.is_empty() {

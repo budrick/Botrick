@@ -55,11 +55,13 @@ async fn main() -> Result<()> {
 
             match cmd {
                 Some(command) => {
-                    println!(
-                        "{} {}",
-                        botrick::bot::mention_nick(&command.nick),
-                        command.command
-                    );
+                    if !command.command.eq("default") {
+                        println!(
+                            "{} {}",
+                            botrick::bot::mention_nick(&command.nick),
+                            command.command
+                        );
+                    }
                     let sc = sender.clone();
                     let bcc = bot_config.clone();
                     if command.command.eq("default") {

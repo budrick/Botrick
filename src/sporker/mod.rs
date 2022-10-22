@@ -253,7 +253,7 @@ pub fn getdb() -> Result<Connection> {
     path.push("data");
     path.push("werdz");
     path.set_extension("sqlite");
-
+    println!("{:?}", path);
     let h: Connection = Connection::open(path)?;
     Ok(h)
 }

@@ -151,7 +151,6 @@ pub struct DefaultCommand {
 }
 impl Command for DefaultCommand {
     fn execute(&self) -> CommandResult {
-        println!("{:#?}", self.command);
         let urls = get_urls(self.command.params.as_str());
         if !self.config.inspect_urls || urls.is_empty() {
             return Ok(());

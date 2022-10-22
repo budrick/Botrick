@@ -10,6 +10,11 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
             static ref COMMAND_RE: Regex = Regex::new(r"^%(\S+)(\s*)").unwrap();
         }
 
+        // CTCP messages are ignored.
+        if text.starts_with('\u{001}') {
+            return None;
+        }
+
         // Where was the message sent, and who sent it? We need these to allow responses.
         let responsetarget = message.response_target().unwrap_or("");
         let responsenick = message.source_nickname().unwrap_or("");

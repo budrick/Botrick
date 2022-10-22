@@ -3,7 +3,7 @@ use futures::prelude::*;
 use irc::client::prelude::*;
 use std::fs;
 use tokio::sync::mpsc::unbounded_channel;
-use botrick::{sporker, Channelizer, args};
+use botrick::{sporker, Channelizer, args, config::Config as BotConfig};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -12,6 +12,9 @@ async fn main() -> Result<()> {
     let args = args::parse();
     let dir = fs::canonicalize(args.dir.unwrap())?;
     std::env::set_current_dir(dir)?;
+
+    // Load configuration file or die trying
+    let bot_config: BotConfig = confy::load_path(std::path::Path::new("botrick.toml"))?;
 
     // Logger thread
     let (ltx, mut lrx): Channelizer = unbounded_channel();
@@ -33,7 +36,7 @@ async fn main() -> Result<()> {
     });
 
     // Spin up IRC loop
-    let config = Config::load("config.toml")?;
+    let config = Config::load("irc.toml")?;
     let mut client = Client::from_config(config).await?;
     client.identify()?;
 
@@ -57,8 +60,9 @@ async fn main() -> Result<()> {
                         command.command
                     );
                     let sc = sender.clone();
+                    let bcc = bot_config.clone();
                     tokio::task::spawn_blocking(move || {
-                        _ = botrick::bot::handle_command_message(command, sc);
+                        _ = botrick::bot::handle_command_message(command, sc, bcc);
                     });
                     // match botrick::bot::handle_command_message(command, sender.clone()) {
                     //     _ => continue,

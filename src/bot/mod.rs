@@ -107,20 +107,20 @@ pub fn get_url_title(url: &str) -> Option<String> {
     }
 }
 
-fn get_command_handler(command: CommandMessage, sender: Sender) -> Option<Box<dyn Command>> {
+fn get_command_handler(command: CommandMessage, sender: Sender, config: crate::config::Config) -> Option<Box<dyn Command>> {
     match command.command.as_str() {
-        "default" => Some(Box::new(DefaultCommand { command, sender })),
+        "default" => Some(Box::new(DefaultCommand { command, sender, config })),
         ".bots" => Some(Box::new(BotsCommand { command, sender })),
         "spork" => Some(Box::new(SporkCommand { command, sender })),
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
-        // "sleep" => Some(Box::new(SleepCommand { command, sender })),
+        // "sleep" => Some(Box::new(SleepCommand { command, sender, config })),
         _ => None,
     }
 }
 
 // Dispatch handlers for BotCommands
-pub fn handle_command_message(command: CommandMessage, sender: Sender) -> CommandResult {
-    let handler = get_command_handler(command.clone(), sender);
+pub fn handle_command_message(command: CommandMessage, sender: Sender, config: crate::config::Config) -> CommandResult {
+    let handler = get_command_handler(command.clone(), sender, config);
     if let Some(handler) = handler {
         handler.execute()
     } else {
@@ -147,12 +147,13 @@ pub struct CommandMessage {
 pub struct DefaultCommand {
     sender: Sender,
     command: CommandMessage,
+    config: crate::config::Config,
 }
 impl Command for DefaultCommand {
     fn execute(&self) -> CommandResult {
         println!("{:#?}", self.command);
         let urls = get_urls(self.command.params.as_str());
-        if urls.is_empty() {
+        if !self.config.inspect_urls || urls.is_empty() {
             return Ok(());
         }
         let title = get_url_title(urls[0].as_str());

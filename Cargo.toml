@@ -8,6 +8,7 @@ default-run = "botrick"
 [dependencies]
 anyhow = "1.0.57"
 clap = { version = "4.0.15", features = ["derive"] }
+confy = "0.5.0"
 futures = "0.3.21"
 irc = "0.15.0"
 lazy_static = "1.4.0"
@@ -16,6 +17,7 @@ regex = "1.5.6"
 reqwest = { version = "0.11.12", features = ["blocking"] }
 rusqlite = "0.27.0"
 select = "0.5.0"
+serde = { version = "1.0.147", features = ["derive"] }
 tokio = { version = "1.19.0", features = ["full"] }
 
 # [[bin]]

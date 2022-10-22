@@ -162,7 +162,7 @@ impl Command for DefaultCommand {
         self.sender
             .send_privmsg(
                 &self.command.channel,
-                format!("We found at least one URL, with title: {}", title.unwrap()),
+                format!("LINK >> {}", title.unwrap()),
             )
             .with_context(|| "Failed to send message")
     }

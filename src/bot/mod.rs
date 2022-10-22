@@ -1,4 +1,4 @@
-use crate::{sporker, config};
+use crate::{sporker, config::Config};
 use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
@@ -107,7 +107,7 @@ pub fn get_url_title(url: &str) -> Option<String> {
     }
 }
 
-fn get_command_handler(command: CommandMessage, sender: Sender, config: config::Config) -> Option<Box<dyn Command>> {
+fn get_command_handler(command: CommandMessage, sender: Sender, config: Config) -> Option<Box<dyn Command>> {
     match command.command.as_str() {
         "default" => Some(Box::new(DefaultCommand { command, sender, config })),
         ".bots" => Some(Box::new(BotsCommand { command, sender })),
@@ -119,7 +119,7 @@ fn get_command_handler(command: CommandMessage, sender: Sender, config: config::
 }
 
 // Dispatch handlers for BotCommands
-pub fn handle_command_message(command: CommandMessage, sender: Sender, config: config::Config) -> CommandResult {
+pub fn handle_command_message(command: CommandMessage, sender: Sender, config: Config) -> CommandResult {
     let handler = get_command_handler(command.clone(), sender, config);
     if let Some(handler) = handler {
         handler.execute()
@@ -147,7 +147,7 @@ pub struct CommandMessage {
 pub struct DefaultCommand {
     sender: Sender,
     command: CommandMessage,
-    config: config::Config,
+    config: Config,
 }
 impl Command for DefaultCommand {
     fn execute(&self) -> CommandResult {

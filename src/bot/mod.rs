@@ -84,11 +84,11 @@ pub fn get_urls(message: &str)->Vec<linkify::Link> {
     linkfinder.links(message).collect()
 }
 
-pub async fn get_url_title(url: &str) -> Option<String> {
+pub fn get_url_title(url: &str) -> Option<String> {
     if url.is_empty() {
         return None;
     }
-    let response_o = reqwest::get(url).await;
+    let response_o = reqwest::blocking::get(url);
     if response_o.is_err() {
         return None;
     }
@@ -99,7 +99,7 @@ pub async fn get_url_title(url: &str) -> Option<String> {
     // }
     content_type?; // weeeeeeird
     if content_type.unwrap().to_str().unwrap_or_default().starts_with("text/html") {
-        let body = response.text().await.unwrap_or_default();
+        let body = response.text().unwrap_or_default();
         let doc = select::document::Document::from(body.as_str());
         let f:Vec<_> = doc.find(select::predicate::Name("title")).take(1).collect();
         if f.is_empty() {
@@ -159,11 +159,14 @@ impl Command for DefaultCommand {
         if urls.is_empty() {
             return Ok(());
         }
-
+        let title = get_url_title(urls[0].as_str());
+        if title.is_none() {
+            return Ok(());
+        }
         self.sender
             .send_privmsg(
                 &self.command.channel,
-                format!("We found at least one URL: {}", urls[0].as_str()),
+                format!("We found at least one URL, with title: {}", title.unwrap()),
             )
             .with_context(|| "Failed to send message")
     }

@@ -56,7 +56,10 @@ async fn main() -> Result<()> {
                         botrick::bot::mention_nick(&command.nick),
                         command.command
                     );
-                    _ = botrick::bot::handle_command_message(command, sender.clone());
+                    let sc = sender.clone();
+                    tokio::task::spawn_blocking(move || {
+                        _ = botrick::bot::handle_command_message(command, sc);
+                    });
                     // match botrick::bot::handle_command_message(command, sender.clone()) {
                     //     _ => continue,
                     // }

@@ -62,7 +62,9 @@ async fn main() -> Result<()> {
                     );
                     let sc = sender.clone();
                     let bcc = bot_config.clone();
-                    ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
+                    if command.command.eq("default") {
+                        ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
+                    }
                     tokio::task::spawn_blocking(move || {
                         _ = botrick::bot::handle_command_message(command, sc, bcc);
                     });

@@ -55,10 +55,6 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
             }
         };
 
-        // let cmd_text = text
-        //     .strip_prefix(format!("%{}{}", cmd, spaces).as_str())
-        //     .map_or("", |v| v);
-
         // If there is a valid command, create a CommandMessage to pass around to handlers.
         match cmd {
             "" => None,
@@ -117,6 +113,7 @@ fn get_command_handler(command: CommandMessage, sender: Sender) -> Option<Box<dy
         ".bots" => Some(Box::new(BotsCommand { command, sender })),
         "spork" => Some(Box::new(SporkCommand { command, sender })),
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
+        // "sleep" => Some(Box::new(SleepCommand { command, sender })),
         _ => None,
     }
 }
@@ -135,7 +132,6 @@ pub fn handle_command_message(command: CommandMessage, sender: Sender) -> Comman
 }
 
 pub type CommandResult = anyhow::Result<()>;
-// type CommandHandlerResult = anyhow::Result<Box<dyn Command>>;
 
 pub trait Command {
     fn execute(&self) -> CommandResult;
@@ -184,6 +180,19 @@ impl Command for BotsCommand {
                 String::from("Reporting in! [Rust] just %spork or %sporklike, yo."),
             )
             .with_context(|| "Failed to send message")
+    }
+}
+#[allow(dead_code)]
+pub struct SleepCommand {
+    sender: Sender,
+    command: CommandMessage,
+}
+impl Command for SleepCommand {
+    fn execute(&self) -> CommandResult {
+        println!("Sleeping for 10...");
+        std::thread::sleep(std::time::Duration::from_secs(10));
+        println!("Waking after 10...");
+        Ok(())
     }
 }
 

@@ -3,7 +3,8 @@ use futures::prelude::*;
 use irc::client::prelude::*;
 use std::fs;
 use tokio::sync::mpsc::unbounded_channel;
-use botrick::{sporker, Channelizer, args, config::Config as BotConfig};
+use sporker;
+use botrick::{Channelizer, args, config::Config as BotConfig};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -15,6 +16,8 @@ async fn main() -> Result<()> {
 
     // Load configuration file or die trying
     let bot_config: BotConfig = confy::load_path(std::path::Path::new("botrick.toml"))?;
+    // println!("{:?}", bot_config);
+    // return Ok(());
 
     // Logger thread
     let (ltx, mut lrx): Channelizer = unbounded_channel();

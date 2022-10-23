@@ -2,8 +2,8 @@ use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 
 extern crate botrick;
-use crate::botrick::sporker::getdb;
-use crate::botrick::sporker::Spork;
+use sporker::getdb;
+use sporker::Spork;
 
 // #[tokio::main]
 fn main() {

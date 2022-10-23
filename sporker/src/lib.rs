@@ -1,7 +1,9 @@
 use regex::Regex;
 use rusqlite::{named_params, Connection};
+use std::path::Path;
+
 mod statements;
-use anyhow::Result;
+pub mod error;
 
 // List of blocked initial words
 static BLOCKLIST: [&str; 2] = ["!speak", "!talklike"];
@@ -246,15 +248,18 @@ impl Spork {
     }
 }
 
+pub fn opendb<F: AsRef<Path>>(file: F) -> Result<Connection, rusqlite::Error> {
+    Connection::open(file)
+}
+
 // Returns an SQLite DB handle
-pub fn getdb() -> Result<Connection> {
+pub fn getdb() -> Result<Connection, error::SporkerError> {
     // Overly Correctly construct a path to a DB file
     let mut path = std::env::current_dir()?;
     path.push("data");
     path.push("werdz");
     path.set_extension("sqlite");
-    let h: Connection = Connection::open(path)?;
-    Ok(h)
+    Connection::open(path).map_err(|source| error::SporkerError::DatabaseError { source })
 }
 
 // Does what it says. Given a start word and a Spork, do the needful.

@@ -1,4 +1,5 @@
-use crate::{sporker, config::Config};
+use crate::config::Config;
+use sporker;
 use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;

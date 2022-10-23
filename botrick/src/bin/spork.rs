@@ -1,7 +1,5 @@
 use anyhow::Result;
 use std::env;
-extern crate botrick;
-use sporker;
 
 fn main() -> Result<()> {
     // Spin up the database, and a Spork to use it.

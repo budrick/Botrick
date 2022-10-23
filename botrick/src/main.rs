@@ -1,10 +1,16 @@
+pub mod bot;
+pub mod args;
+pub mod config;
+pub mod channelizer;
+
 use anyhow::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
 use std::fs;
+use std::path::Path;
 use tokio::sync::mpsc::unbounded_channel;
-use sporker;
-use botrick::{Channelizer, args, config::Config as BotConfig};
+use sporker::{getdb, Spork};
+use crate::{channelizer::Channelizer, config::Config as BotConfig};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -15,15 +21,15 @@ async fn main() -> Result<()> {
     std::env::set_current_dir(dir)?;
 
     // Load configuration file or die trying
-    let bot_config: BotConfig = confy::load_path(std::path::Path::new("botrick.toml"))?;
+    let bot_config: BotConfig = confy::load_path(Path::new("botrick.toml"))?;
     // println!("{:?}", bot_config);
     // return Ok(());
 
     // Logger thread
     let (ltx, mut lrx): Channelizer = unbounded_channel();
     let _logger = tokio::spawn(async move {
-        let db = sporker::getdb().unwrap();
-        let s = sporker::Spork::new(db);
+        let db = getdb().unwrap();
+        let s = Spork::new(db);
 
         while let Some(line) = lrx.recv().await {
             let nick = line.source_nickname();
@@ -54,14 +60,14 @@ async fn main() -> Result<()> {
             //     // sender.send_privmsg(&channel, "beep boop").unwrap();
             // }
 
-            let cmd = botrick::bot::parse_command(&message);
+            let cmd = bot::parse_command(&message);
 
             match cmd {
                 Some(command) => {
                     if !command.command.eq("default") {
                         println!(
                             "{} {}",
-                            botrick::bot::mention_nick(&command.nick),
+                            bot::mention_nick(&command.nick),
                             command.command
                         );
                     }
@@ -71,9 +77,9 @@ async fn main() -> Result<()> {
                         ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
                     }
                     tokio::task::spawn_blocking(move || {
-                        _ = botrick::bot::handle_command_message(command, sc, bcc);
+                        _ = bot::handle_command_message(command, sc, bcc);
                     });
-                    // match botrick::bot::handle_command_message(command, sender.clone()) {
+                    // match bot::handle_command_message(command, sender.clone()) {
                     //     _ => continue,
                     // }
                 }

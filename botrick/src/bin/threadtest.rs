@@ -1,7 +1,6 @@
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 
-extern crate botrick;
 use sporker::getdb;
 use sporker::Spork;
 

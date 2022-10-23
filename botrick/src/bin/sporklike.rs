@@ -1,6 +1,4 @@
 use std::env;
-extern crate botrick;
-use sporker;
 use anyhow::Result;
 
 fn main() -> Result<()> {

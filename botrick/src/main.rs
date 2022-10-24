@@ -1,21 +1,20 @@
-pub mod bot;
 pub mod args;
-pub mod config;
+pub mod bot;
 pub mod channelizer;
 pub mod color;
+pub mod config;
 
+use crate::{channelizer::Channelizer, config::Config as BotConfig};
 use anyhow::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
+use sporker::{getdb, Spork};
 use std::fs;
 use std::path::Path;
 use tokio::sync::mpsc::unbounded_channel;
-use sporker::{getdb, Spork};
-use crate::{channelizer::Channelizer, config::Config as BotConfig};
 
 #[tokio::main]
 async fn main() -> Result<()> {
-
     // Parse command-line args, and set the working directory. Let it fail fast.
     let args = args::parse();
     let dir = fs::canonicalize(args.dir.unwrap())?;
@@ -66,11 +65,7 @@ async fn main() -> Result<()> {
             match cmd {
                 Some(command) => {
                     if !command.command.eq("default") {
-                        println!(
-                            "{} {}",
-                            bot::mention_nick(&command.nick),
-                            command.command
-                        );
+                        println!("{} {}", bot::mention_nick(&command.nick), command.command);
                     }
                     let sc = sender.clone();
                     let bcc = bot_config.clone();

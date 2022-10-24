@@ -5,7 +5,7 @@ pub enum Color {
     White,
     Black,
     Blue,
-    Green ,
+    Green,
     Red,
     Brown,
     Magenta,
@@ -23,25 +23,25 @@ pub enum Color {
 }
 impl fmt::Display for Color {
     fn fmt(&self, f: &mut Formatter) -> Result {
-        match self {
-            &Color::White => write!(f, "00"),
-            &Color::Black => write!(f, "01"),
-            &Color::Blue => write!(f, "02"),
-            &Color::Green => write!(f, "03"),
-            &Color::Red => write!(f, "04"),
-            &Color::Brown => write!(f, "05"),
-            &Color::Magenta => write!(f, "06"),
-            &Color::Orange => write!(f, "07"),
-            &Color::Yellow => write!(f, "08"),
-            &Color::LightGreen => write!(f, "09"),
-            &Color::Cyan => write!(f, "10"),
-            &Color::LightCyan => write!(f, "11"),
-            &Color::LightBlue => write!(f, "12"),
-            &Color::Pink => write!(f, "13"),
-            &Color::Gray => write!(f, "14"),
-            &Color::LightGray => write!(f, "15"),
-            &Color::Default => write!(f, "99"),
-            &Color::Reset => write!(f, ""),
+        match *self {
+            Color::White => write!(f, "00"),
+            Color::Black => write!(f, "01"),
+            Color::Blue => write!(f, "02"),
+            Color::Green => write!(f, "03"),
+            Color::Red => write!(f, "04"),
+            Color::Brown => write!(f, "05"),
+            Color::Magenta => write!(f, "06"),
+            Color::Orange => write!(f, "07"),
+            Color::Yellow => write!(f, "08"),
+            Color::LightGreen => write!(f, "09"),
+            Color::Cyan => write!(f, "10"),
+            Color::LightCyan => write!(f, "11"),
+            Color::LightBlue => write!(f, "12"),
+            Color::Pink => write!(f, "13"),
+            Color::Gray => write!(f, "14"),
+            Color::LightGray => write!(f, "15"),
+            Color::Default => write!(f, "99"),
+            Color::Reset => write!(f, ""),
         }
     }
 }
@@ -52,12 +52,17 @@ pub fn colors(fg: Color, bg: Option<Color>) -> String {
     }
 
     if bg.is_some() {
-        String::from(format!("\u{3}{},{}", fg, bg.unwrap()))
+        format!("\u{3}{},{}", fg, bg.unwrap())
     } else {
-        String::from(format!("\u{3}{}", fg))
+        format!("\u{3}{}", fg)
     }
 }
 
 pub fn colorize(color: Color, message: &str) -> String {
-    String::from(format!("{}{}{}", colors(color, None), message, colors(Color::Reset, None)))
+    format!(
+        "{}{}{}",
+        colors(color, None),
+        message,
+        colors(Color::Reset, None)
+    )
 }

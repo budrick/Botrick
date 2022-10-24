@@ -1,10 +1,10 @@
+use crate::color;
 use crate::config::Config;
-use sporker;
 use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
-use crate::color;
+use sporker;
 
 pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
     if let PRIVMSG(ref _channel, ref text) = message.command {
@@ -40,9 +40,7 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
                 matches.get(2).unwrap().as_str(),
             ),
             // No (probable) commands? Make an attempt at getting links, and dispatch a special builtin
-            _ => {
-                ("default", "")    
-            },
+            _ => ("default", ""),
         };
 
         // Command text is the rest of the line minus the command + space prefix.
@@ -50,11 +48,9 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
         // the params since there's no prefix to strip.
         let cmd_text = match cmd {
             "default" => text.as_str(),
-            _ => {
-                text
-                    .strip_prefix(format!("%{}{}", cmd, spaces).as_str())
-                    .map_or("", |v| v)
-            }
+            _ => text
+                .strip_prefix(format!("%{}{}", cmd, spaces).as_str())
+                .map_or("", |v| v),
         };
 
         // If there is a valid command, create a CommandMessage to pass around to handlers.
@@ -76,7 +72,7 @@ pub fn mention_nick(nick: &str) -> String {
     format!("{}:", nick)
 }
 
-pub fn get_urls(message: &str)->Vec<linkify::Link> {
+pub fn get_urls(message: &str) -> Vec<linkify::Link> {
     let mut linkfinder = linkify::LinkFinder::new();
     linkfinder.kinds(&[linkify::LinkKind::Url]);
     linkfinder.links(message).collect()
@@ -96,10 +92,15 @@ pub fn get_url_title(url: &str) -> Option<String> {
     //     return None;
     // }
     content_type?; // weeeeeeird
-    if content_type.unwrap().to_str().unwrap_or_default().starts_with("text/html") {
+    if content_type
+        .unwrap()
+        .to_str()
+        .unwrap_or_default()
+        .starts_with("text/html")
+    {
         let body = response.text().unwrap_or_default();
         let doc = select::document::Document::from(body.as_str());
-        let f:Vec<_> = doc.find(select::predicate::Name("title")).take(1).collect();
+        let f: Vec<_> = doc.find(select::predicate::Name("title")).take(1).collect();
         if f.is_empty() {
             return None;
         }
@@ -109,9 +110,17 @@ pub fn get_url_title(url: &str) -> Option<String> {
     }
 }
 
-fn get_command_handler(command: CommandMessage, sender: Sender, config: Config) -> Option<Box<dyn Command>> {
+fn get_command_handler(
+    command: CommandMessage,
+    sender: Sender,
+    config: Config,
+) -> Option<Box<dyn Command>> {
     match command.command.as_str() {
-        "default" => Some(Box::new(DefaultCommand { command, sender, config })),
+        "default" => Some(Box::new(DefaultCommand {
+            command,
+            sender,
+            config,
+        })),
         ".bots" => Some(Box::new(BotsCommand { command, sender })),
         "spork" => Some(Box::new(SporkCommand { command, sender })),
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
@@ -121,7 +130,11 @@ fn get_command_handler(command: CommandMessage, sender: Sender, config: Config) 
 }
 
 // Dispatch handlers for BotCommands
-pub fn handle_command_message(command: CommandMessage, sender: Sender, config: Config) -> CommandResult {
+pub fn handle_command_message(
+    command: CommandMessage,
+    sender: Sender,
+    config: Config,
+) -> CommandResult {
     let handler = get_command_handler(command.clone(), sender, config);
     if let Some(handler) = handler {
         handler.execute()

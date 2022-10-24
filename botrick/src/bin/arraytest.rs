@@ -1,4 +1,4 @@
-static BLOCKLIST: [&str;2] = ["speak", "talklike"];
+static BLOCKLIST: [&str; 2] = ["speak", "talklike"];
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();

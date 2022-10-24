@@ -1,5 +1,5 @@
-use std::env;
 use anyhow::Result;
+use std::env;
 
 fn main() -> Result<()> {
     // Spin up the database, and a Spork to use it.

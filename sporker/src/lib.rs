@@ -2,8 +2,8 @@ use regex::Regex;
 use rusqlite::{named_params, Connection};
 use std::path::Path;
 
-mod statements;
 pub mod error;
+mod statements;
 
 // List of blocked initial words
 static BLOCKLIST: [&str; 2] = ["!speak", "!talklike"];

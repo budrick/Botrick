@@ -4,6 +4,7 @@ use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
+use crate::color;
 
 pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
     if let PRIVMSG(ref _channel, ref text) = message.command {
@@ -160,10 +161,11 @@ impl Command for DefaultCommand {
         if title.is_none() {
             return Ok(());
         }
+        let colbit = color::colorize(color::Color::Green, "LINK >>");
         self.sender
             .send_privmsg(
                 &self.command.channel,
-                format!("LINK >> {}", title.unwrap()),
+                format!("{} {}", colbit, title.unwrap()),
             )
             .with_context(|| "Failed to send message")
     }

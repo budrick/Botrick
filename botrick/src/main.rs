@@ -2,6 +2,7 @@ pub mod bot;
 pub mod args;
 pub mod config;
 pub mod channelizer;
+pub mod color;
 
 use anyhow::Result;
 use futures::prelude::*;

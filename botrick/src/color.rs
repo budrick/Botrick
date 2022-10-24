@@ -42,7 +42,7 @@ impl fmt::Display for Color {
             Color::Gray => write!(f, "14"),
             Color::LightGray => write!(f, "15"),
             Color::Default => write!(f, "99"),
-            Color::Num(num) => write!(f, "{}", num),
+            Color::Num(num) => write!(f, "{:02}", num),
             Color::Reset => write!(f, ""),
         }
     }

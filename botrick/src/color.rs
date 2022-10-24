@@ -19,6 +19,7 @@ pub enum Color {
     Gray,
     LightGray,
     Default,
+    Num(u8),
     Reset,
 }
 impl fmt::Display for Color {
@@ -41,6 +42,7 @@ impl fmt::Display for Color {
             Color::Gray => write!(f, "14"),
             Color::LightGray => write!(f, "15"),
             Color::Default => write!(f, "99"),
+            Color::Num(num) => write!(f, "{}", num),
             Color::Reset => write!(f, ""),
         }
     }

@@ -1,4 +1,4 @@
-use crate::color;
+use crate::color::{self, colorize, Color};
 use crate::config::Config;
 use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
@@ -124,6 +124,7 @@ fn get_command_handler(
         ".bots" => Some(Box::new(BotsCommand { command, sender })),
         "spork" => Some(Box::new(SporkCommand { command, sender })),
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
+        "colors" => Some(Box::new(ColorsCommand { command, sender })),
         // "sleep" => Some(Box::new(SleepCommand { command, sender, config })),
         _ => None,
     }
@@ -174,7 +175,7 @@ impl Command for DefaultCommand {
         if title.is_none() {
             return Ok(());
         }
-        let colbit = color::colorize(color::Color::Green, "LINK >>");
+        let colbit = color::colorize(color::Color::Green, None, "LINK >>");
         self.sender
             .send_privmsg(
                 &self.command.channel,
@@ -209,6 +210,31 @@ impl Command for SleepCommand {
         std::thread::sleep(std::time::Duration::from_secs(10));
         println!("Waking after 10...");
         Ok(())
+    }
+}
+
+pub struct ColorsCommand {
+    sender: Sender,
+    command: CommandMessage,
+}
+impl Command for ColorsCommand {
+    fn execute(&self) -> CommandResult {
+        let mut colstring = String::new();
+        for col in 0..49 {
+            colstring
+                .push_str(colorize(Color::Num(col), None, format!("{} ", col).as_str()).as_str());
+        }
+        self.sender
+            .send_privmsg(&self.command.channel, colstring)
+            .with_context(|| "Failed to send message")?;
+        colstring = String::new();
+        for col in 50..98 {
+            colstring
+                .push_str(colorize(Color::Num(col), None, format!("{} ", col).as_str()).as_str());
+        }
+        self.sender
+            .send_privmsg(&self.command.channel, colstring)
+            .with_context(|| "Failed to send message")
     }
 }
 

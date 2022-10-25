@@ -219,29 +219,22 @@ pub struct ColorsCommand {
 }
 impl Command for ColorsCommand {
     fn execute(&self) -> CommandResult {
-        let mut stringz: Vec<String> = vec![];
         let mut colstring = String::new();
-        let mut wrap: u8 = 0;
+
         for col in 0..99 {
-            wrap = wrap + 1;
-            colstring.push_str(
-                colorize(Color::Num(col), None, format!("{:02} ", col).as_str()).as_str(),
-            );
-            if col > 0 && wrap % 20 == 0 {
-                stringz.push(colstring);
-                colstring = String::new();
-                wrap = 0;
+            colstring
+                .push_str(colorize(Color::Num(col), None, format!("{:02}", col).as_str()).as_str());
+
+            if (col + 1) % 20 == 0 {
+                colstring.push_str("\r\n");
+            } else {
+                colstring.push(' ');
             }
         }
-        if !colstring.is_empty() {
-            stringz.push(colstring);
-        }
-        for s in stringz {
-            self.sender
-                .send_privmsg(&self.command.channel, s)
-                .with_context(|| "Failed to send message")?
-        }
-        Ok(())
+
+        self.sender
+            .send_privmsg(&self.command.channel, colstring)
+            .with_context(|| "Failed to send message")
     }
 }
 

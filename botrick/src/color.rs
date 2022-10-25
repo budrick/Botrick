@@ -60,11 +60,28 @@ pub fn colors(fg: Color, bg: Option<Color>) -> String {
     }
 }
 
-pub fn colorize(color: Color, message: &str) -> String {
+pub fn colorize(fg: Color, bg: Option<Color>, message: &str) -> String {
     format!(
         "{}{}{}",
-        colors(color, None),
+        colors(fg, bg),
         message,
         colors(Color::Reset, None)
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::color::Color;
+
+    #[test]
+    fn test_fg_only() {
+        let result = crate::color::colorize(Color::Red, None, "hi");
+        assert_eq!(result.as_str(), "\u{3}04hi\u{3}");
+    }
+
+    #[test]
+    fn test_fg_and_bg() {
+        let result = crate::color::colorize(Color::Red, Some(Color::Green), "hi");
+        assert_eq!(result.as_str(), "\u{3}04,03hi\u{3}");
+    }
 }

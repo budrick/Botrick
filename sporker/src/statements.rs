@@ -14,6 +14,8 @@ pub fn random_start(db: &Connection) -> CachedStatement<'_> {
 
 pub fn random_start_like(db: &Connection) -> CachedStatement<'_> {
     // SEE https://blog.rodolfocarvalho.net/2012/05/how-to-select-random-rows-from-sqlite.html
+    // SEE ALSO: https://gist.github.com/alecco/9976dab8fda8256ed403054ed0a65d7b for a different technique.
+    // ORIGINALLY: https://gist.github.com/swayson/84fc86da20db89b56eac
     return db
         .prepare_cached(
             "SELECT werd, nextwerd, prevwerd FROM werdz
@@ -25,19 +27,6 @@ pub fn random_start_like(db: &Connection) -> CachedStatement<'_> {
         )
         .unwrap();
 }
-
-// pub fn random_start_like(db: &Connection) -> CachedStatement<'_> {
-//     return db
-//         .prepare_cached(
-//             "SELECT werd, nextwerd, prevwerd FROM werdz
-//         WHERE _ROWID_ >= (abs(random()) % (SELECT max(_ROWID_) FROM werdz))
-//         AND (prevwerd IS NOT NULL
-//         OR nextwerd IS NOT NULL)
-//         AND normalizedsaidby = lower(:saidby)
-//         LIMIT 1;",
-//         )
-//         .unwrap();
-// }
 
 pub fn search_start(db: &Connection) -> CachedStatement<'_> {
     return db

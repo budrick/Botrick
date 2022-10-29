@@ -1,12 +1,13 @@
 use crate::color::{colorize, Color};
 use crate::config::Config;
 use anyhow::{anyhow, Context};
+use command::create_bot_command;
+use commands::*;
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
+mod command;
 mod commands;
-
-use commands::*;
 
 pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
     if let PRIVMSG(ref _channel, ref text) = message.command {
@@ -128,9 +129,25 @@ fn get_command_handler(
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
         "colors" => Some(Box::new(ColorsCommand { command, sender })),
         "sleep" => Some(Box::new(SleepCommand { command, sender })),
+        "test" => Some(Box::new(TestCommand {
+            command,
+            sender,
+            config,
+        })),
         _ => None,
     }
 }
+
+// This is some weird voodoo.
+create_bot_command![
+    TestCommand,
+    {
+        self.sender
+            .send_privmsg(&self.command.channel, "testtest")
+            .with_context(|| "Couldn't send message")
+    },
+    self
+];
 
 // Dispatch handlers for BotCommands
 pub fn handle_command_message(

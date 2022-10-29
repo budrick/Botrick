@@ -4,6 +4,9 @@ use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
+mod commands;
+
+use commands::*;
 
 pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
     if let PRIVMSG(ref _channel, ref text) = message.command {
@@ -124,7 +127,7 @@ fn get_command_handler(
         "spork" => Some(Box::new(SporkCommand { command, sender })),
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
         "colors" => Some(Box::new(ColorsCommand { command, sender })),
-        // "sleep" => Some(Box::new(SleepCommand { command, sender, config })),
+        "sleep" => Some(Box::new(SleepCommand { command, sender })),
         _ => None,
     }
 }
@@ -144,19 +147,6 @@ pub fn handle_command_message(
             command.command
         ))
     }
-}
-
-pub type CommandResult = anyhow::Result<()>;
-
-pub trait Command {
-    fn execute(&self) -> CommandResult;
-}
-#[derive(Debug, Clone)]
-pub struct CommandMessage {
-    pub command: String,
-    pub params: String,
-    pub channel: String,
-    pub nick: String,
 }
 
 pub struct DefaultCommand {
@@ -195,122 +185,6 @@ impl Command for BotsCommand {
                 &self.command.channel,
                 String::from("Reporting in! [Rust] just %spork or %sporklike, yo."),
             )
-            .with_context(|| "Failed to send message")
-    }
-}
-#[allow(dead_code)]
-pub struct SleepCommand {
-    sender: Sender,
-    command: CommandMessage,
-}
-impl Command for SleepCommand {
-    fn execute(&self) -> CommandResult {
-        println!("Sleeping for 10...");
-        std::thread::sleep(std::time::Duration::from_secs(10));
-        println!("Waking after 10...");
-        Ok(())
-    }
-}
-
-pub struct ColorsCommand {
-    sender: Sender,
-    command: CommandMessage,
-}
-impl Command for ColorsCommand {
-    fn execute(&self) -> CommandResult {
-        let mut colstring = String::new();
-
-        for col in 0..99 {
-            colstring
-                .push_str(colorize(Color::Num(col), None, format!("{:02}", col).as_str()).as_str());
-
-            if (col + 1) % 20 == 0 {
-                colstring.push_str("\r\n");
-            } else {
-                colstring.push(' ');
-            }
-        }
-
-        self.sender
-            .send_privmsg(&self.command.channel, colstring)
-            .with_context(|| "Failed to send message")
-    }
-}
-
-pub struct SporkCommand {
-    sender: Sender,
-    command: CommandMessage,
-}
-impl Command for SporkCommand {
-    fn execute(&self) -> CommandResult {
-        let db = sporker::getdb()?;
-        let s = sporker::Spork::new(db);
-
-        let words: Vec<&str> = self.command.params.split_whitespace().collect();
-        let startw = if !words.is_empty() {
-            s.start_with_word(words[0])
-        } else {
-            s.start()
-        };
-
-        let output: String = match startw {
-            Some(word) => {
-                let mut words = sporker::build_words(word, &s);
-                words.insert(0, mention_nick(&self.command.nick));
-                words.join(" ")
-            }
-            _ => String::from("Couldn't do it could I"),
-        };
-
-        self.sender
-            .send_privmsg(&self.command.channel, output)
-            .with_context(|| "Failed to send message")
-    }
-}
-
-pub struct SporklikeCommand {
-    sender: Sender,
-    command: CommandMessage,
-}
-impl Command for SporklikeCommand {
-    fn execute(&self) -> CommandResult {
-        let db = sporker::getdb()?;
-        let s = sporker::Spork::new(db);
-
-        // Get all our cmdline args
-        let words: Vec<&str> = self.command.params.split_whitespace().collect();
-
-        // Fewer than 2 args? Go away.
-        if words.is_empty() {
-            return self
-                .sender
-                .send_privmsg(
-                    &self.command.channel,
-                    String::from("Talking about nobody is it"),
-                )
-                .with_context(|| String::from("Failed to send message"));
-        }
-
-        let saidby = words[0];
-
-        // If we have more than one arg, take the first one and run with it.
-        // Otherwise, find out own start word. With blackjack. And hookers.
-        let startw = match words.len() {
-            1 => s.start_like(saidby),
-            _ => s.start_with_word_like(words[1], saidby),
-        };
-
-        let output: String = match startw {
-            Some(word) => {
-                let mut words = sporker::build_words_like(word, &s, saidby);
-                words.insert(0, mention_nick(&self.command.nick));
-                words.join(" ")
-            }
-            _ => String::from("Couldn't do it could I"),
-        };
-
-        self.sender
-            .send_privmsg(&self.command.channel, output)
             .with_context(|| "Failed to send message")
     }
 }

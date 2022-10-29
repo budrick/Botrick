@@ -1,6 +1,7 @@
 use std::fmt;
 use std::fmt::{Formatter, Result};
 
+#[allow(dead_code)]
 pub enum Color {
     White,
     Black,

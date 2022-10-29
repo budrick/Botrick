@@ -1,8 +1,8 @@
-pub mod args;
-pub mod bot;
-pub mod channelizer;
-pub mod color;
-pub mod config;
+mod args;
+mod bot;
+mod channelizer;
+mod color;
+mod config;
 
 use crate::{channelizer::Channelizer, config::Config as BotConfig};
 use anyhow::Result;

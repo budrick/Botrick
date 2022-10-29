@@ -1,10 +1,9 @@
-use crate::color::{self, colorize, Color};
+use crate::color::{colorize, Color};
 use crate::config::Config;
 use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
-use sporker;
 
 pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
     if let PRIVMSG(ref _channel, ref text) = message.command {
@@ -175,7 +174,7 @@ impl Command for DefaultCommand {
         if title.is_none() {
             return Ok(());
         }
-        let colbit = color::colorize(color::Color::Green, None, "LINK >>");
+        let colbit = colorize(Color::Green, None, "LINK >>");
         self.sender
             .send_privmsg(
                 &self.command.channel,

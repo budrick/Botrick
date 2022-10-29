@@ -1,7 +1,7 @@
 use crate::color::{colorize, Color};
 use crate::config::Config;
 use anyhow::{anyhow, Context};
-use command::create_bot_command;
+use command::{create_bot_command, bot_commands};
 use commands::*;
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
@@ -118,33 +118,57 @@ fn get_command_handler(
     sender: Sender,
     config: Config,
 ) -> Option<Box<dyn Command>> {
-    match command.command.as_str() {
-        "default" => Some(Box::new(DefaultCommand {
-            command,
-            sender,
-            config,
-        })),
-        ".bots" => Some(Box::new(BotsCommand { command, sender })),
-        "spork" => Some(Box::new(SporkCommand { command, sender })),
-        "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
-        "colors" => Some(Box::new(ColorsCommand { command, sender })),
-        "sleep" => Some(Box::new(SleepCommand { command, sender })),
-        "test" => Some(Box::new(TestCommand {
-            command,
-            sender,
-            config,
-        })),
-        _ => None,
-    }
+    let params = CommandParams {command, sender, config };
+    bot_commands!(
+        params.command.command.as_str(),
+        params,
+        [
+            "test" => TestCommand { params },
+            ".bots" => BotsCommand { params },
+            "spork" => crate::bot::commands::SporkTestCommand { params},
+        ]
+    )
+    // match command.command.as_str() {
+    //     "default" => Some(Box::new(DefaultCommand {
+    //         command,
+    //         sender,
+    //         config,
+    //     })),
+    //     ".bots" => Some(Box::new(BotsCommand { command, sender })),
+    //     "spork" => Some(Box::new(SporkCommand { command, sender })),
+    //     "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
+    //     "colors" => Some(Box::new(ColorsCommand { command, sender })),
+    //     "sleep" => Some(Box::new(SleepCommand { command, sender })),
+    //     "test" => Some(Box::new(TestCommand {
+    //         command,
+    //         sender,
+    //         config,
+    //     })),
+    //     _ => None,
+    // }
 }
 
 // This is some weird voodoo.
 create_bot_command![
     TestCommand,
     {
-        self.sender
-            .send_privmsg(&self.command.channel, "testtest")
+        self.params.sender
+            .send_privmsg(&self.params.command.channel, "testtest")
             .with_context(|| "Couldn't send message")
+    },
+    self
+];
+
+// This is some weird voodoo.
+create_bot_command![
+    BotsCommand,
+    {
+        self.params.sender
+            .send_privmsg(
+                &self.params.command.channel,
+                String::from("Reporting in! [Rust] just %spork or %sporklike, yo."),
+            )
+            .with_context(|| "Failed to send message")
     },
     self
 ];
@@ -164,6 +188,14 @@ pub fn handle_command_message(
             command.command
         ))
     }
+}
+
+#[derive(Debug)]
+#[allow(dead_code)]
+pub struct CommandParams {
+    command: CommandMessage,
+    sender: Sender,
+    config: Config,
 }
 
 pub struct DefaultCommand {
@@ -186,21 +218,6 @@ impl Command for DefaultCommand {
             .send_privmsg(
                 &self.command.channel,
                 format!("{} {}", colbit, title.unwrap()),
-            )
-            .with_context(|| "Failed to send message")
-    }
-}
-
-pub struct BotsCommand {
-    sender: Sender,
-    command: CommandMessage,
-}
-impl Command for BotsCommand {
-    fn execute(&self) -> CommandResult {
-        self.sender
-            .send_privmsg(
-                &self.command.channel,
-                String::from("Reporting in! [Rust] just %spork or %sporklike, yo."),
             )
             .with_context(|| "Failed to send message")
     }

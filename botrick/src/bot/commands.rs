@@ -1,11 +1,12 @@
 mod colors_command;
 mod sleep_command;
 mod spork_commands;
+mod testspork;
 
 pub use colors_command::ColorsCommand;
 pub use sleep_command::SleepCommand;
 pub use spork_commands::*;
-
+pub use testspork::SporkTestCommand;
 pub type CommandResult = anyhow::Result<()>;
 
 pub trait Command {

@@ -4,9 +4,7 @@ macro_rules! create_bot_command {
         #[derive(Debug)]
         #[allow(dead_code)]
         pub struct $name {
-            sender: irc::client::Sender,
-            command: crate::bot::CommandMessage,
-            config: crate::config::Config,
+            pub params: CommandParams,
         }
 
         impl Command for $name {
@@ -17,11 +15,17 @@ macro_rules! create_bot_command {
     };
 }
 
-macro_rules! bot_command {
-    ($name: ident, $params:ident) => {
-        $name { $params }
-    };
+macro_rules! bot_commands {
+
+    ($_self:expr, $params:ident, [$($cmd: pat => $handler:expr,)*]) => {
+        match $_self {
+            $(
+                $cmd => Some(Box::new($handler)),
+            )*
+            _ => None,
+        }
+    }
 }
 
-pub(crate) use bot_command;
+pub(crate) use bot_commands;
 pub(crate) use create_bot_command;

@@ -8,6 +8,7 @@ use crate::{channelizer::Channelizer, config::Config as BotConfig};
 use anyhow::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
+use proctitle::set_title;
 use sporker::{getdb, Spork};
 use std::fs;
 use std::path::Path;
@@ -17,8 +18,13 @@ use tokio::sync::mpsc::unbounded_channel;
 async fn main() -> Result<()> {
     // Parse command-line args, and set the working directory. Let it fail fast.
     let args = args::parse();
-    let dir = fs::canonicalize(args.dir.unwrap())?;
+    let dir = fs::canonicalize(args.dir)?;
     std::env::set_current_dir(dir)?;
+    
+    let cd = std::env::current_dir()?;
+    let ptitle = std::env::current_exe()?;
+
+    set_title(format!("{}: {}", ptitle.to_str().unwrap_or("botrick"), cd.to_str().unwrap_or("Couldn't get cwd")));
 
     // Load configuration file or die trying
     let bot_config: BotConfig = confy::load_path(Path::new("botrick.toml"))?;

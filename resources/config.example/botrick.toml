@@ -1,0 +1,2 @@
+inspect_urls = false # If true, the bot will attempt to fetch URLs and display their title if HTML
+command_prefix = "%" # Most bots have a command prefix. ! is common, but often taken. So we default to %

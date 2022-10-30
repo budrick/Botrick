@@ -1,0 +1,10 @@
+# See https://github.com/aatxe/irc#configuring-irc-clients for a list of all options
+owners = []
+nickname = "examplenick"
+username = "exampleuser"
+realname = "Botrick Example"
+server = "irc-server.address.here"
+port = 6697
+use_tls = true
+encoding = "UTF-8"
+channels = ["#channel1", "#channel2"]

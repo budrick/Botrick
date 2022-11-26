@@ -1,12 +1,14 @@
 use crate::color::{colorize, Color};
-use crate::config::Config;
 use anyhow::{anyhow, Context};
-use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
 mod commands;
 
 use commands::*;
+pub mod command;
+
+pub use crate::config::Config;
+pub use irc::{client::Sender, proto::Command::PRIVMSG};
 
 pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
     if let PRIVMSG(ref _channel, ref text) = message.command {

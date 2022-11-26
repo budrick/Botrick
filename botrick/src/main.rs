@@ -3,6 +3,7 @@ mod bot;
 mod channelizer;
 mod color;
 mod config;
+mod commands;
 
 use crate::{channelizer::Channelizer, config::Config as BotConfig};
 use anyhow::Result;
@@ -12,6 +13,8 @@ use sporker::{getdb, Spork};
 use std::fs;
 use std::path::Path;
 use tokio::sync::mpsc::unbounded_channel;
+
+use commands::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -51,6 +54,12 @@ async fn main() -> Result<()> {
 
     let mut stream = client.stream()?;
     let sender = client.sender();
+    let c_clone = bot_config.clone();
+    let mut commander: bot::command::Commander = bot::command::Commander::new(c_clone);
+
+    commander.insert("default", commands::default);
+    commander.insert(".bots", commands::bots);
+    commander.insert("%colors", commands::colors);
 
     while let Some(message) = stream.next().await.transpose()? {
         if let Command::PRIVMSG(ref _channel, ref _text) = message.command {
@@ -60,29 +69,53 @@ async fn main() -> Result<()> {
             //     // sender.send_privmsg(&channel, "beep boop").unwrap();
             // }
 
-            let cmd = bot::parse_command(&message);
-
-            match cmd {
-                Some(command) => {
-                    if !command.command.eq("default") {
-                        println!("{} {}", bot::mention_nick(&command.nick), command.command);
-                    }
-                    let sc = sender.clone();
-                    let bcc = bot_config.clone();
-                    if command.command.eq("default") {
-                        ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
-                    }
-                    tokio::task::spawn_blocking(move || {
-                        _ = bot::handle_command_message(command, sc, bcc);
-                    });
-                    // match bot::handle_command_message(command, sender.clone()) {
-                    //     _ => continue,
-                    // }
-                }
-                _ => {
-                    ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
-                }
+            let command = commander.extract(&message);
+            if command.is_none() {
+                continue;
             }
+            let command = command.unwrap();
+            let c_clone = command.clone();
+            let handler = commander.get_handler(c_clone);
+            if !commander.command_exists(&command) {
+                ltx.send(message.clone())?;
+            }
+            if handler.is_none() {
+                continue;
+            }
+            let handler = handler.unwrap();
+            let sender_c = sender.clone();
+            let bot_config_c = bot_config.clone();
+
+            tokio::task::spawn_blocking(move || {
+                handler(command, sender_c, bot_config_c);
+            });
+
+            // commander.process(&message);
+            continue;
+
+            // let cmd = bot::parse_command(&message);
+
+            // match cmd {
+            //     Some(command) => {
+            //         if !command.command.eq("default") {
+            //             println!("{} {}", bot::mention_nick(&command.nick), command.command);
+            //         }
+            //         let sc = sender.clone();
+            //         let bcc = bot_config.clone();
+            //         if command.command.eq("default") {
+            //             ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
+            //         }
+            //         tokio::task::spawn_blocking(move || {
+            //             _ = bot::handle_command_message(command, sc, bcc);
+            //         });
+            //         // match bot::handle_command_message(command, sender.clone()) {
+            //         //     _ => continue,
+            //         // }
+            //     }
+            //     _ => {
+            //         ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
+            //     }
+            // }
         }
     }
 

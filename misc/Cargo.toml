@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.66"
 clap = "4.0.18"
+matchit = "0.7.0"
 sporker = { version = "0.2.0", path = "../sporker" }
 tokio = "1.21.2"

@@ -54,7 +54,7 @@ impl Game {
         let werd = *dict.choose(&mut rng).unwrap_or(&"");
         Self {
             // dict,
-            werd: werd.to_string(),
+            werd: werd.to_string().to_ascii_uppercase(),
             letterz: HashSet::new(),
             guesses: Vec::new(),
         }
@@ -78,7 +78,7 @@ impl Game {
         }
 
         let mut result = GuessResult::new();
-        guess.chars().enumerate().for_each(|(i, c)| {
+        guess.to_ascii_uppercase().chars().enumerate().for_each(|(i, c)| {
             let char_result = if self.werd.chars().nth(i).unwrap_or('!') == c {
                 GuessCharState::RightChar
             } else if self.werd.chars().any(|wc| wc == c) {
@@ -97,8 +97,13 @@ impl Game {
     }
 
     pub fn guessed_letters(&self) -> String {
-        let s = String::new();
-        self.letterz.iter().for_each(|a| s.push(format!("{} ", a)));
+        let mut s = String::new();
+        let mut l = self.letterz.iter().collect::<Vec<&char>>();
+        l.sort();
+        l.iter().for_each(|a| {
+            println!("{:?}", self.letterz.is_empty());
+            s.push_str(format!("{} ", a).as_str())
+        });
         s
     }
 

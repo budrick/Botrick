@@ -100,10 +100,13 @@ impl Game {
         let mut s = String::new();
         let mut l = self.letterz.iter().collect::<Vec<&char>>();
         l.sort();
-        l.iter().for_each(|a| {
-            println!("{:?}", self.letterz.is_empty());
-            s.push_str(format!("{} ", a).as_str())
-        });
+        let len = l.len();
+        for (i, c) in l.iter().enumerate() {
+            s.push(**c);
+            if i+1 < len {
+                s.push(' ');
+            }
+        }
         s
     }
 

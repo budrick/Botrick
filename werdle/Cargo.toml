@@ -1,13 +1,10 @@
 [package]
-name = "misc"
+name = "werdle"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.66"
-clap = "4.0.18"
-sporker = { version = "0.2.0", path = "../sporker" }
-werdle = {path = "../werdle" }
-tokio = "1.21.2"
+rand = "0.8.5"
+thiserror = "1.0.38"

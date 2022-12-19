@@ -2,6 +2,7 @@
 
 members = [
     "sporker",
+    "werdle",
     "botrick",
     "misc"
 ]

@@ -183,7 +183,7 @@ impl Command for BotsCommand {
         self.sender
             .send_privmsg(
                 &self.command.channel,
-                String::from("Reporting in! [Rust] just %spork or %sporklike, yo."),
+                String::from("Reporting in! [Rust🦀] just %spork or %sporklike, yo."),
             )
             .with_context(|| "Failed to send message")
     }

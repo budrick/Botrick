@@ -44,6 +44,14 @@ async fn main() -> Result<()> {
         }
     });
 
+    // Spin up Werdle loop
+    let (wtx, mut wrx): StringChannelizer = unbounded_channel();
+    let _werdle = tokio::spawn(async move {
+        while let Some(guess) = wrx.recv().await {
+            println!("Guess: {}", guess);
+        }
+    });
+
     // Spin up IRC loop
     let config = Config::load("irc.toml")?;
     let mut client = Client::from_config(config).await?;
@@ -72,8 +80,9 @@ async fn main() -> Result<()> {
                     if command.command.eq("default") {
                         ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
                     }
+                    let wsender = wtx.clone();
                     tokio::task::spawn_blocking(move || {
-                        _ = bot::handle_command_message(command, sc, bcc);
+                        _ = bot::handle_command_message(command, sc, bcc, wsender);
                     });
                     // match bot::handle_command_message(command, sender.clone()) {
                     //     _ => continue,

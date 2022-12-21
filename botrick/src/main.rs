@@ -4,7 +4,7 @@ mod channelizer;
 mod color;
 mod config;
 
-use crate::{channelizer::Channelizer, config::Config as BotConfig};
+use crate::{channelizer::*, config::Config as BotConfig};
 use anyhow::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
@@ -26,7 +26,7 @@ async fn main() -> Result<()> {
     // return Ok(());
 
     // Logger thread
-    let (ltx, mut lrx): Channelizer = unbounded_channel();
+    let (ltx, mut lrx): IrcMessageChannelizer = unbounded_channel();
     let _logger = tokio::spawn(async move {
         let db = getdb().unwrap();
         let s = Spork::new(db);

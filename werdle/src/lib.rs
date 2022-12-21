@@ -1,5 +1,5 @@
 use rand::seq::SliceRandom;
-use std::{collections::HashSet};
+use std::collections::HashSet;
 use thiserror::Error;
 
 static ALL_WORDS: &str = include_str!("../resources/werds.txt");
@@ -61,7 +61,7 @@ impl Game {
     }
 
     pub fn is_finished(&self) -> bool {
-         self.is_correct() || self.no_more_tries()
+        self.is_correct() || self.no_more_tries()
     }
 
     pub fn is_correct(&self) -> bool {
@@ -78,19 +78,23 @@ impl Game {
         }
 
         let mut result = GuessResult::new();
-        guess.to_ascii_uppercase().chars().enumerate().for_each(|(i, c)| {
-            let char_result = if self.werd.chars().nth(i).unwrap_or('!') == c {
-                GuessCharState::RightChar
-            } else if self.werd.chars().any(|wc| wc == c) {
-                GuessCharState::WrongPlace
-            } else {
-                GuessCharState::WrongChar
-            };
-            if matches!(char_result, GuessCharState::WrongChar) {
-                self.letterz.insert(c);
-            }
-            result.result.push((c, char_result));
-        });
+        guess
+            .to_ascii_uppercase()
+            .chars()
+            .enumerate()
+            .for_each(|(i, c)| {
+                let char_result = if self.werd.chars().nth(i).unwrap_or('!') == c {
+                    GuessCharState::RightChar
+                } else if self.werd.chars().any(|wc| wc == c) {
+                    GuessCharState::WrongPlace
+                } else {
+                    GuessCharState::WrongChar
+                };
+                if matches!(char_result, GuessCharState::WrongChar) {
+                    self.letterz.insert(c);
+                }
+                result.result.push((c, char_result));
+            });
 
         self.guesses.push(guess.to_string());
         Ok(result)
@@ -103,7 +107,7 @@ impl Game {
         let len = l.len();
         for (i, c) in l.iter().enumerate() {
             s.push(**c);
-            if i+1 < len {
+            if i + 1 < len {
                 s.push(' ');
             }
         }

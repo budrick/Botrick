@@ -98,6 +98,7 @@ dependencies = [
  "serde",
  "sporker",
  "tokio",
+ "werdle",
 ]
 
 [[package]]

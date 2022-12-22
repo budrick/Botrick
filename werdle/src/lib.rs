@@ -65,7 +65,10 @@ impl Game {
     }
 
     pub fn is_correct(&self) -> bool {
-        *self.guesses.last().unwrap() == self.werd
+        match self.guesses.last() {
+            Some(guess) => *guess == self.werd,
+            None => false,
+        }
     }
 
     pub fn no_more_tries(&self) -> bool {
@@ -96,7 +99,7 @@ impl Game {
                 result.result.push((c, char_result));
             });
 
-        self.guesses.push(guess.to_string());
+        self.guesses.push(guess.to_ascii_uppercase());
         Ok(result)
     }
 
@@ -116,5 +119,9 @@ impl Game {
 
     pub fn print_werd(&self) {
         println!("Werd is `{}`", &self.werd);
+    }
+
+    pub fn werd(&self) -> &str {
+        self.werd.as_str()
     }
 }

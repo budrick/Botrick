@@ -1,6 +1,6 @@
-use crate::channelizer::{StringSender};
 use crate::color::{colorize, Color};
 use crate::config::Config;
+use crate::werdplay::WerdleSender;
 use anyhow::{anyhow, Context};
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
@@ -117,7 +117,7 @@ fn get_command_handler(
     command: CommandMessage,
     sender: Sender,
     config: Config,
-    wsender: StringSender,
+    wsender: WerdleSender,
 ) -> Option<Box<dyn Command>> {
     match command.command.as_str() {
         "default" => Some(Box::new(DefaultCommand {
@@ -130,7 +130,11 @@ fn get_command_handler(
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
         "colors" => Some(Box::new(ColorsCommand { command, sender })),
         "sleep" => Some(Box::new(SleepCommand { command, sender })),
-        "werdle" => Some(Box::new(WerdleCommand { command, sender, wsender })),
+        "werdle" => Some(Box::new(WerdleCommand {
+            command,
+            sender,
+            wsender,
+        })),
         _ => None,
     }
 }
@@ -140,7 +144,7 @@ pub fn handle_command_message(
     command: CommandMessage,
     sender: Sender,
     config: Config,
-    wsender: StringSender,
+    wsender: WerdleSender,
 ) -> CommandResult {
     let handler = get_command_handler(command.clone(), sender, config, wsender);
     if let Some(handler) = handler {

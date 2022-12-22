@@ -3,6 +3,7 @@ mod bot;
 mod channelizer;
 mod color;
 mod config;
+mod werdplay;
 
 use crate::{channelizer::*, config::Config as BotConfig};
 use anyhow::Result;
@@ -45,12 +46,13 @@ async fn main() -> Result<()> {
     });
 
     // Spin up Werdle loop
-    let (wtx, mut wrx): StringChannelizer = unbounded_channel();
-    let _werdle = tokio::spawn(async move {
-        while let Some(guess) = wrx.recv().await {
-            println!("Guess: {}", guess);
-        }
-    });
+    let wtx = werdplay::playwerdle();
+    // let (wtx, mut wrx): StringChannelizer = unbounded_channel();
+    // let _werdle = tokio::spawn(async move {
+    //     while let Some(guess) = wrx.recv().await {
+    //         println!("Guess: {}", guess);
+    //     }
+    // });
 
     // Spin up IRC loop
     let config = Config::load("irc.toml")?;

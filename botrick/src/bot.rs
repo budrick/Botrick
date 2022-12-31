@@ -1,6 +1,7 @@
 use crate::color::{colorize, Color};
 use crate::config::Config;
 use anyhow::{anyhow, Context};
+use irc::proto::FormattedStringExt;
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
 use regex::Regex;
@@ -156,6 +157,12 @@ pub struct DefaultCommand {
 }
 impl Command for DefaultCommand {
     fn execute(&self) -> CommandResult {
+        let stripped = self.command.params.as_str().strip_formatting();
+        for rej in &self.config.inspect_rejects {
+            if stripped.contains(rej) {
+                return Ok(());
+            }    
+        }
         let urls = get_urls(self.command.params.as_str());
         if !self.config.inspect_urls || urls.is_empty() {
             return Ok(());

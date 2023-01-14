@@ -1,17 +1,16 @@
 mod args;
 mod bot;
-mod channelizer;
+// mod channelizer;
 mod color;
 mod config;
+mod logger;
 
-use crate::{channelizer::Channelizer, config::Config as BotConfig};
+use crate::config::Config as BotConfig;
 use anyhow::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
-use sporker::{getdb, Spork};
 use std::fs;
 use std::path::Path;
-use tokio::sync::mpsc::unbounded_channel;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -25,24 +24,27 @@ async fn main() -> Result<()> {
     // println!("{:?}", bot_config);
     // return Ok(());
 
-    // Logger thread
-    let (ltx, mut lrx): Channelizer = unbounded_channel();
-    let _logger = tokio::spawn(async move {
-        let db = getdb().unwrap();
-        let s = Spork::new(db);
+    // Logger thread 2.0
+    let lh = logger::LogActorHandle::new();
 
-        while let Some(line) = lrx.recv().await {
-            let nick = line.source_nickname();
-            let cmd = line.command.clone();
-            if let Command::PRIVMSG(_, text) = cmd {
-                if !text.starts_with('\u{001}') || text.starts_with("\u{001}ACTION") {
-                    if let Some(n) = nick {
-                        s.log_message(n, text.as_str());
-                    }
-                }
-            }
-        }
-    });
+    // Logger thread
+    // let (ltx, mut lrx): Channelizer = unbounded_channel();
+    // let _logger = tokio::spawn(async move {
+    //     let db = getdb().unwrap();
+    //     let s = Spork::new(db);
+
+    //     while let Some(line) = lrx.recv().await {
+    //         let nick = line.source_nickname();
+    //         let cmd = line.command.clone();
+    //         if let Command::PRIVMSG(_, text) = cmd {
+    //             if !text.starts_with('\u{001}') || text.starts_with("\u{001}ACTION") {
+    //                 if let Some(n) = nick {
+    //                     s.log_message(n, text.as_str());
+    //                 }
+    //             }
+    //         }
+    //     }
+    // });
 
     // Spin up IRC loop
     let config = Config::load("irc.toml")?;
@@ -70,7 +72,8 @@ async fn main() -> Result<()> {
                     let sc = sender.clone();
                     let bcc = bot_config.clone();
                     if command.command.eq("default") {
-                        ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
+                        lh.log(message.clone());
+                        // ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
                     }
                     tokio::task::spawn_blocking(move || {
                         _ = bot::handle_command_message(command, sc, bcc);
@@ -80,7 +83,8 @@ async fn main() -> Result<()> {
                     // }
                 }
                 _ => {
-                    ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
+                    lh.log(message.clone());
+                    // ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
                 }
             }
         }

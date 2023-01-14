@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 pub struct Config {
     pub command_prefix: String,
     pub inspect_urls: bool,
-    pub inspect_rejects: Vec<String>
+    pub inspect_rejects: Vec<String>,
 }
 // impl Default for Config {
 //     fn default() -> Self { Self { inspect_urls: false } }

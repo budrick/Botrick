@@ -161,7 +161,7 @@ impl Command for DefaultCommand {
         for rej in &self.config.inspect_rejects {
             if stripped.contains(rej) {
                 return Ok(());
-            }    
+            }
         }
         let urls = get_urls(self.command.params.as_str());
         if !self.config.inspect_urls || urls.is_empty() {

@@ -19,6 +19,7 @@ select = "0.5.0"
 serde = { version = "1.0.147", features = ["derive"] }
 tokio = { version = "1.21.2", features = ["full"] }
 sporker = { path = "../sporker" }
+werdle = { path = "../werdle" }
 
 # [[bin]]
 # name = "spork"

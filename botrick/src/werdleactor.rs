@@ -46,7 +46,7 @@ impl WerdleActor {
                             self.game = werdle::Game::new();
                         } else {
                             if self.game.is_finished() {
-                                let _ = self.sender.send_privmsg(command.channel, "Sorry, nobody got it. Better luck next time or something.");
+                                let _ = self.sender.send_privmsg(command.channel, format!("Sorry, nobody got it. Better luck next time or something. It was {} btw.", self.game.werd()));
                             } else {
                                 let _ = self.sender.send_privmsg(command.channel, format!("NO, try again. {}, remaining letters: {}. {} tries left.", color_result(result), self.game.unguessed_letters(), self.game.guesses_left()));
                             }

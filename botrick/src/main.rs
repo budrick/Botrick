@@ -4,11 +4,13 @@ mod bot;
 mod color;
 mod config;
 mod logger;
+mod werdleactor;
 
 use crate::config::Config as BotConfig;
 use anyhow::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
+// use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
 
@@ -54,6 +56,9 @@ async fn main() -> Result<()> {
     let mut stream = client.stream()?;
     let sender = client.sender();
 
+    // Werdle handle
+    let wh = werdleactor::WerdleActorHandle::new(sender.clone());
+
     while let Some(message) = stream.next().await.transpose()? {
         if let Command::PRIVMSG(ref _channel, ref _text) = message.command {
             // Left for demonstrative purposes: Quick and dirty example of listening for bot's own nick
@@ -75,8 +80,9 @@ async fn main() -> Result<()> {
                         lh.log(message.clone());
                         // ltx.send(message.clone())?; // Log the message if it isn't a valid command to us
                     }
+                    let werdle_handle = wh.clone();
                     tokio::task::spawn_blocking(move || {
-                        _ = bot::handle_command_message(command, sc, bcc);
+                        _ = bot::handle_command_message(command, sc, bcc, werdle_handle);
                     });
                     // match bot::handle_command_message(command, sender.clone()) {
                     //     _ => continue,

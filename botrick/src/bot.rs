@@ -1,5 +1,6 @@
 use crate::color::{colorize, Color};
 use crate::config::Config;
+use crate::werdleactor;
 use anyhow::{anyhow, Context};
 use irc::proto::FormattedStringExt;
 use irc::{client::Sender, proto::Command::PRIVMSG};
@@ -8,6 +9,7 @@ use regex::Regex;
 mod commands;
 
 use commands::*;
+pub use commands::CommandMessage;
 
 pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
     if let PRIVMSG(ref _channel, ref text) = message.command {
@@ -117,6 +119,7 @@ fn get_command_handler(
     command: CommandMessage,
     sender: Sender,
     config: Config,
+    werdle_handle: werdleactor::WerdleActorHandle,
 ) -> Option<Box<dyn Command>> {
     match command.command.as_str() {
         "default" => Some(Box::new(DefaultCommand {
@@ -129,6 +132,7 @@ fn get_command_handler(
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
         "colors" => Some(Box::new(ColorsCommand { command, sender })),
         "sleep" => Some(Box::new(SleepCommand { command, sender })),
+        "werdle" => Some(Box::new(WerdleCommand { command, sender, werdle_handle } )),
         _ => None,
     }
 }
@@ -138,8 +142,9 @@ pub fn handle_command_message(
     command: CommandMessage,
     sender: Sender,
     config: Config,
+    werdle_handle: werdleactor::WerdleActorHandle
 ) -> CommandResult {
-    let handler = get_command_handler(command.clone(), sender, config);
+    let handler = get_command_handler(command.clone(), sender, config, werdle_handle);
     if let Some(handler) = handler {
         handler.execute()
     } else {

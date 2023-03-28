@@ -1,0 +1,3 @@
+command_prefix = ''
+inspect_urls = false
+inspect_rejects = []

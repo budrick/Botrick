@@ -95,9 +95,9 @@ impl Game {
                 } else {
                     GuessCharState::WrongChar
                 };
-                if matches!(char_result, GuessCharState::WrongChar) {
-                    self.letterz.insert(c);
-                }
+                // if matches!(char_result, GuessCharState::WrongChar) {
+                self.letterz.insert(c);
+                // }
                 result.result.push((c, char_result));
             });
 
@@ -120,8 +120,29 @@ impl Game {
         s
     }
 
+    pub fn unguessed_letters(&self) -> String {
+        let lz: HashSet<char> = ('A'..='Z').into_iter().collect();
+        let mut s = String::new();
+        let guessed_letters = self.letterz.iter().map(|c| *c ).collect::<HashSet<char>>();
+        let unguessed = lz.difference(&guessed_letters);
+        let mut u = unguessed.map(|c| *c).collect::<Vec<char>>();
+        u.sort();
+        let len = u.len();
+        for (i, c) in u.iter().enumerate() {
+            s.push(*c);
+            if i + 1 < len {
+                s.push(' ');
+            }
+        }
+        s
+    }
+
     pub fn last_guess(&self) -> Option<GuessResult> {
         self.lastresult.clone()
+    }
+
+    pub fn guesses_left(&self) -> usize {
+        MAX_TRIES - self.guesses.len()
     }
 
     pub fn print_werd(&self) {

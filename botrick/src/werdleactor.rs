@@ -42,15 +42,23 @@ impl WerdleActor {
                 match res {
                     Ok(result) => {
                         if self.game.is_correct() {
-                            let _ = self.sender.send_privmsg(command.channel, format!("You did it. It was {}", self.game.werd()));
+                            let _ = self.sender.send_privmsg(command.channel, format!("You did it. It was {}. Good job Team.", self.game.werd()));
+                            self.game = werdle::Game::new();
                         } else {
-
-                            let _ = self.sender.send_privmsg(command.channel, format!("NO, try again. {}, guessed letters: {}", color_result(result), self.game.guessed_letters()));
+                            if self.game.is_finished() {
+                                let _ = self.sender.send_privmsg(command.channel, "Sorry, nobody got it. Better luck next time or something.");
+                            } else {
+                                let _ = self.sender.send_privmsg(command.channel, format!("NO, try again. {}, remaining letters: {}. {} tries left.", color_result(result), self.game.unguessed_letters(), self.game.guesses_left()));
+                            }
                         }
                     },
                     Err(_) => {
-                        let _ = self.sender.send_privmsg(command.channel, "Do a better guess, yo.");
+                        let _ = self.sender.send_privmsg(command.channel, "Guess correctly pls");
                     },
+                }
+
+                if self.game.is_finished() {
+                    self.game = werdle::Game::new()
                 }
                 // The `let _ =` ignores any errors when sending.
                 //
@@ -60,15 +68,12 @@ impl WerdleActor {
             },
             ActorMessage::GetState { command } => {
                 let last_guess = self.game.last_guess();
-                let letters = self.game.guessed_letters();
-                let message = match last_guess {
-                    Some(guess) => {
-                        format!("Status: {}, guessed letters: {}", color_result(guess), letters)
-                    },
-                    None => {
-                        String::from("No guesses. Whatever.")
-                    },
+                let letters = self.game.unguessed_letters();
+                let guess = match last_guess {
+                    Some(g) => color_result(g),
+                    None => String::from("_____"),
                 };
+                let message = format!("{}, remaining letters: {}. {} tries left.", guess, letters, self.game.guesses_left());
                 let _ = self.sender.send_privmsg(command.channel, message);
             },
             ActorMessage::GetWord { command } => {

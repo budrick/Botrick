@@ -133,6 +133,7 @@ fn get_command_handler(
         "colors" => Some(Box::new(ColorsCommand { command, sender })),
         "sleep" => Some(Box::new(SleepCommand { command, sender })),
         "werdle" => Some(Box::new(WerdleCommand { command, sender, werdle_handle } )),
+        "wordle" => Some(Box::new(WerdleCommand { command, sender, werdle_handle } )),
         _ => None,
     }
 }

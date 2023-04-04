@@ -58,7 +58,7 @@ impl Game {
             werd: werd.to_string().to_ascii_uppercase(),
             letterz: HashSet::new(),
             guesses: Vec::new(),
-            lastresult: None
+            lastresult: None,
         }
     }
 
@@ -121,11 +121,11 @@ impl Game {
     }
 
     pub fn unguessed_letters(&self) -> String {
-        let lz: HashSet<char> = ('A'..='Z').into_iter().collect();
+        let lz: HashSet<char> = ('A'..='Z').collect();
         let mut s = String::new();
-        let guessed_letters = self.letterz.iter().map(|c| *c ).collect::<HashSet<char>>();
+        let guessed_letters = self.letterz.iter().copied().collect::<HashSet<char>>();
         let unguessed = lz.difference(&guessed_letters);
-        let mut u = unguessed.map(|c| *c).collect::<Vec<char>>();
+        let mut u = unguessed.copied().collect::<Vec<char>>();
         u.sort();
         let len = u.len();
         for (i, c) in u.iter().enumerate() {

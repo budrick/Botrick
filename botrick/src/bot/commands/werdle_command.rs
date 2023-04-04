@@ -18,7 +18,8 @@ impl Command for WerdleCommand {
         if input.is_empty() {
             self.werdle_handle.get_state(self.command.clone());
         } else {
-            self.werdle_handle.guess(self.command.params.clone(), self.command.clone());
+            self.werdle_handle
+                .guess(self.command.params.clone(), self.command.clone());
         }
         // let a = self.werdle_handle.get_word(self.command.clone());
 

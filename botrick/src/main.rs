@@ -13,9 +13,13 @@ use irc::client::prelude::*;
 // use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
+use tracing::{debug};
 
 #[tokio::main]
 async fn main() -> Result<()> {
+
+    tracing_subscriber::fmt::init();
+
     // Parse command-line args, and set the working directory. Let it fail fast.
     let args = args::parse();
     let dir = fs::canonicalize(args.dir.unwrap())?;
@@ -72,7 +76,8 @@ async fn main() -> Result<()> {
             match cmd {
                 Some(command) => {
                     if !command.command.eq("default") {
-                        println!("{} {}", bot::mention_nick(&command.nick), command.command);
+                        // println!("{} {}", bot::mention_nick(&command.nick), command.command);
+                        debug!("{} {}", bot::mention_nick(&command.nick), command.command);
                     }
                     let sc = sender.clone();
                     let bcc = bot_config.clone();

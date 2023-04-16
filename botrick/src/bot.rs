@@ -1,7 +1,7 @@
 use crate::color::{colorize, Color};
 use crate::config::Config;
 use crate::werdleactor;
-use anyhow::{anyhow, Context};
+use color_eyre::eyre::{eyre, Context};
 use irc::proto::FormattedStringExt;
 use irc::{client::Sender, proto::Command::PRIVMSG};
 use lazy_static::lazy_static;
@@ -157,7 +157,7 @@ pub fn handle_command_message(
     if let Some(handler) = handler {
         handler.execute()
     } else {
-        Err(anyhow!(
+        Err(eyre!(
             "Could not find command handler for `{}`",
             command.command
         ))

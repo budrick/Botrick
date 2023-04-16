@@ -7,17 +7,18 @@ mod logger;
 mod werdleactor;
 
 use crate::config::Config as BotConfig;
-use anyhow::Result;
+use color_eyre::eyre::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;
 // use std::collections::HashSet;
 use std::fs;
 use std::path::Path;
-use tracing::{debug};
+use tracing::debug;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-
+    // Errors and log messages are good great awesome
+    color_eyre::install()?;
     tracing_subscriber::fmt::init();
 
     // Parse command-line args, and set the working directory. Let it fail fast.

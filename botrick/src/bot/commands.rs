@@ -8,7 +8,7 @@ pub use sleep_command::SleepCommand;
 pub use spork_commands::*;
 pub use werdle_command::*;
 
-pub type CommandResult = anyhow::Result<()>;
+pub type CommandResult = color_eyre::eyre::Result<()>;
 
 pub trait Command {
     fn execute(&self) -> CommandResult;

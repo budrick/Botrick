@@ -1,6 +1,6 @@
 use crate::bot::{Command, CommandMessage, CommandResult};
 use crate::color::{colorize, Color};
-use anyhow::Context;
+use color_eyre::eyre::WrapErr;
 use irc::client::Sender;
 
 pub struct ColorsCommand {
@@ -24,6 +24,6 @@ impl Command for ColorsCommand {
 
         self.sender
             .send_privmsg(&self.command.channel, colstring)
-            .with_context(|| "Failed to send message")
+            .wrap_err("Failed to send message")
     }
 }

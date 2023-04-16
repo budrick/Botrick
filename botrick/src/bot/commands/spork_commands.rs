@@ -1,7 +1,7 @@
 use crate::bot::mention_nick;
 
 use super::{Command, CommandMessage, CommandResult};
-use anyhow::Context;
+use color_eyre::eyre::WrapErr;
 use irc::client::Sender;
 
 pub struct SporkCommand {
@@ -31,7 +31,7 @@ impl Command for SporkCommand {
 
         self.sender
             .send_privmsg(&self.command.channel, output)
-            .with_context(|| "Failed to send message")
+            .wrap_err("Failed to send message")
     }
 }
 
@@ -55,7 +55,7 @@ impl Command for SporklikeCommand {
                     &self.command.channel,
                     String::from("Talking about nobody is it"),
                 )
-                .with_context(|| String::from("Failed to send message"));
+                .wrap_err("Failed to send message");
         }
 
         let saidby = words[0];
@@ -78,6 +78,6 @@ impl Command for SporklikeCommand {
 
         self.sender
             .send_privmsg(&self.command.channel, output)
-            .with_context(|| "Failed to send message")
+            .wrap_err("Failed to send message")
     }
 }

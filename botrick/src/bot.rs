@@ -37,6 +37,17 @@ pub fn parse_command(message: &irc::proto::Message) -> Option<CommandMessage> {
             });
         }
 
+        // Short-circuit command parsing for `.bots`
+        // .bots is a special case that doesn't use our regular prefix
+        if text == "7" {
+            return Some(CommandMessage {
+                nick: String::from(responsenick),
+                channel: String::from(responsetarget),
+                command: String::from("7"),
+                params: String::from("7"),
+            });
+        }
+
         // Try and regex out a "normal" command. `cmd` becomes the command itself, `spaces` any following whitespace
         let maybe_cmd = COMMAND_RE.captures(text);
         let (cmd, spaces) = match maybe_cmd {
@@ -129,6 +140,7 @@ fn get_command_handler(
         })),
         ".bots" => Some(Box::new(BotsCommand { command, sender })),
         "spork" => Some(Box::new(SporkCommand { command, sender })),
+        "7" => Some(Box::new(SporkCommand { command, sender })),
         "sporklike" => Some(Box::new(SporklikeCommand { command, sender })),
         "colors" => Some(Box::new(ColorsCommand { command, sender })),
         "sleep" => Some(Box::new(SleepCommand { command, sender })),

@@ -1,8 +1,5 @@
 use tokio::sync::mpsc;
 
-// use crate::bot::CommandMessage;
-// use crate::color::{colorize, Color};
-
 struct TestActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
     sender: irc::client::Sender,
@@ -10,34 +7,19 @@ struct TestActor {
 
 #[derive(Debug)]
 enum ActorMessage {
-    Test {
-        message: irc::proto::Message
-    }
-    // Guess {
-    //     word: String,
-    //     command: crate::bot::CommandMessage,
-    // },
-    // GetState {
-    //     command: crate::bot::CommandMessage,
-    // },
-    // GetWord {
-    //     command: crate::bot::CommandMessage,
-    // },
+    Test { message: irc::proto::Message },
 }
 
 impl TestActor {
     fn new(receiver: mpsc::UnboundedReceiver<ActorMessage>, sender: irc::client::Sender) -> Self {
-        TestActor {
-            receiver,
-            sender,
-        }
+        TestActor { receiver, sender }
     }
     fn handle_message(&mut self, msg: ActorMessage) {
         tracing::debug!("Got message {:?}", msg);
         match msg {
             ActorMessage::Test { message } => {
                 tracing::debug!("Test is handling {}", message);
-            },
+            }
         };
     }
 }

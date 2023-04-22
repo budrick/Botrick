@@ -8,29 +8,19 @@ use crate::bot::CommandMessage;
 struct IrcActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
     sender: irc::client::Sender,
-    handlers: HashMap<String, Box<dyn super::Actor>>
+    handlers: HashMap<String, Box<dyn super::Actor>>,
 }
 
 #[derive(Debug)]
 enum ActorMessage {
-    // Guess {
-    //     word: String,
-    //     command: crate::bot::CommandMessage,
-    // },
-    // GetState {
-    //     command: crate::bot::CommandMessage,
-    // },
     Register {
         command: String,
         handler: Box<dyn super::Actor>,
     },
     Process {
         command: String,
-        message: irc::proto::Message,
-    }
-    // GetWord {
-    //     command: crate::bot::CommandMessage,
-    // },
+        message: Box<irc::proto::Message>,
+    },
 }
 
 impl IrcActor {
@@ -46,11 +36,11 @@ impl IrcActor {
         match msg {
             ActorMessage::Register { command, handler } => {
                 self.handlers.insert(command, handler);
-            },
+            }
             ActorMessage::Process { command, message } => {
                 let h = self.handlers.get(&command).unwrap();
-                h.process(message);
-            },
+                h.process(*message);
+            }
         }
     }
 }
@@ -79,12 +69,17 @@ impl IrcActorHandle {
         tracing::debug!("Received: {}", message);
         if let irc::proto::Command::PRIVMSG(ref _channel, ref text) = message.command {
             if text.starts_with("toast") {
-                let _ = self.sender.send( ActorMessage::Process { command: "toast".to_string(), message });
+                let _ = self.sender.send(ActorMessage::Process {
+                    command: "toast".to_string(),
+                    message: Box::new(message),
+                });
             }
         }
     }
 
     pub fn register(&self, command: String, handler: Box<dyn super::Actor>) {
-        let _ = self.sender.send( ActorMessage::Register { command, handler });
+        let _ = self
+            .sender
+            .send(ActorMessage::Register { command, handler });
     }
 }

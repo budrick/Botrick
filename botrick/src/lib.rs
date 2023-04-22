@@ -8,8 +8,4 @@ pub mod werdleactor;
 
 pub mod actors;
 
-pub const VERSION_STR: &str = concat!(
-    env!("CARGO_PKG_NAME"),
-    " ",
-    env!("CARGO_PKG_VERSION"),
-);
+pub const VERSION_STR: &str = concat!(env!("CARGO_PKG_NAME"), " ", env!("CARGO_PKG_VERSION"),);

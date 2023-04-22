@@ -2,6 +2,10 @@ use std::collections::HashMap;
 
 use tokio::sync::mpsc;
 
+use crate::irc::CommandMessage;
+
+// use crate::bot::CommandMessage;
+
 // use crate::bot::CommandMessage;
 // use crate::color::{colorize, Color};
 
@@ -18,8 +22,7 @@ enum ActorMessage {
         handler: Box<dyn super::Actor>,
     },
     Process {
-        command: String,
-        message: Box<irc::proto::Message>,
+        message: Box<CommandMessage>,
     },
 }
 
@@ -37,9 +40,12 @@ impl IrcActor {
             ActorMessage::Register { command, handler } => {
                 self.handlers.insert(command, handler);
             }
-            ActorMessage::Process { command, message } => {
-                let h = self.handlers.get(&command).unwrap();
-                h.process(*message);
+            ActorMessage::Process { message } => {
+                // TODO: Log anything that doesn't match a command.
+                if let Some(h) = self.handlers.get(&message.command) {
+                    tracing::debug!("Passing to handler: {:?}", message);
+                    h.process(*message);
+                }
             }
         }
     }
@@ -67,14 +73,9 @@ impl IrcActorHandle {
 
     pub fn process(&self, message: irc::proto::Message) {
         tracing::debug!("Received: {}", message);
-        if let irc::proto::Command::PRIVMSG(ref _channel, ref text) = message.command {
-            if text.starts_with("toast") {
-                let _ = self.sender.send(ActorMessage::Process {
-                    command: "toast".to_string(),
-                    message: Box::new(message),
-                });
-            }
-        }
+        let _ = self.sender.send(ActorMessage::Process {
+            message: Box::new(message.into()),
+        });
     }
 
     pub fn register(&self, command: String, handler: Box<dyn super::Actor>) {

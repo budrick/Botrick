@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use tokio::sync::mpsc;
 
-use crate::bot::CommandMessage;
+// use crate::bot::CommandMessage;
 // use crate::color::{colorize, Color};
 
 struct IrcActor {

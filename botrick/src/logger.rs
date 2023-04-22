@@ -61,3 +61,9 @@ impl LogActorHandle {
         let _ = self.sender.send(msg);
     }
 }
+
+impl Default for LogActorHandle {
+    fn default() -> Self {
+        Self::new()
+    }
+}

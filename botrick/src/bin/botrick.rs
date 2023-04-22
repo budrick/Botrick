@@ -1,12 +1,4 @@
-mod args;
-mod bot;
-// mod channelizer;
-mod color;
-mod config;
-mod logger;
-mod werdleactor;
-
-use crate::config::Config as BotConfig;
+use botrick::{args, logger, werdleactor, bot, config::Config as BotConfig};
 use color_eyre::eyre::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;

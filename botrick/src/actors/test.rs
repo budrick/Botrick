@@ -1,5 +1,7 @@
 use tokio::sync::mpsc;
 
+use crate::irc::CommandMessage;
+
 struct TestActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
     sender: irc::client::Sender,
@@ -7,7 +9,7 @@ struct TestActor {
 
 #[derive(Debug)]
 enum ActorMessage {
-    Test { message: irc::proto::Message },
+    Test { message: CommandMessage },
 }
 
 impl TestActor {
@@ -18,7 +20,7 @@ impl TestActor {
         tracing::debug!("Got message {:?}", msg);
         match msg {
             ActorMessage::Test { message } => {
-                tracing::debug!("Test is handling {}", message);
+                tracing::debug!("Test is handling {:?}", message);
             }
         };
     }
@@ -46,7 +48,8 @@ impl TestActorHandle {
 }
 
 impl super::api::Actor for TestActorHandle {
-    fn process(&self, message: irc::proto::Message) {
-        tracing::debug!("Test Actor Handle received: {}", message);
+    fn process(&self, message: CommandMessage) {
+        tracing::debug!("Test Actor Handle received: {:?}", message);
+        let _ = self.sender.send(ActorMessage::Test { message });
     }
 }

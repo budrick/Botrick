@@ -1,4 +1,4 @@
-use botrick::{args, logger, werdleactor, bot, config::Config as BotConfig};
+use botrick::{args, bot, config::Config as BotConfig, logger, werdleactor};
 use color_eyre::eyre::Result;
 use futures::prelude::*;
 use irc::client::prelude::*;

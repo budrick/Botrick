@@ -1,5 +1,3 @@
-use std::fmt::Debug;
-
 pub trait Actor: Sync + Send {
     fn process(&self, message: irc::proto::Message);
 }

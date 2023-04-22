@@ -9,12 +9,11 @@ So let's sketch out how this should go:
         - Said Actor will handle message parsing, handoff to the Logging actor, etc.
  */
 
+use botrick::actors::{IrcActorHandle, TestActorHandle};
+// use botrick::config as botconfig;
 use color_eyre::eyre::Result;
 use futures::StreamExt;
-use tracing::debug;
-use botrick::actors::{IrcActorHandle, TestActorHandle};
 use irc::client::prelude as irc;
-use botrick::config as botconfig;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -26,11 +25,10 @@ async fn main() -> Result<()> {
     let args = botrick::args::parse();
     let dir = std::fs::canonicalize(args.dir.unwrap())?;
     std::env::set_current_dir(dir)?;
-    
+
     // Load configuration file or die trying
     // let bot_config: botconfig::Config = confy::load_path(std::path::Path::new("botrick.toml"))?;
-    
-    
+
     // Spin up IRC loop
     let user_config = irc::Config::load("irc.toml")?;
     let config = irc::Config {
@@ -41,13 +39,12 @@ async fn main() -> Result<()> {
     client.identify()?;
     let mut stream = client.stream()?;
     let sender = client.sender();
-    
+
     let irc_handler = IrcActorHandle::new(sender.clone());
     let test_handler = TestActorHandle::new(sender.clone());
     irc_handler.register(String::from("toast"), Box::new(test_handler));
     while let Some(message) = stream.next().await.transpose()? {
         if let irc::Command::PRIVMSG(ref _channel, ref text) = message.command {
-
             // Reject CTCP - handled by the `irc` crate on its own
             if text.starts_with('\u{1}') {
                 continue;
@@ -55,8 +52,6 @@ async fn main() -> Result<()> {
             irc_handler.process(message);
         }
     }
-
-
 
     Ok(())
 }

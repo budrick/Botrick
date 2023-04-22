@@ -12,7 +12,7 @@ So let's sketch out how this should go:
 use color_eyre::eyre::Result;
 use futures::StreamExt;
 use tracing::debug;
-use botrick::actors::IrcActorHandle;
+use botrick::actors::{IrcActorHandle, TestActorHandle};
 use irc::client::prelude as irc;
 use botrick::config as botconfig;
 
@@ -43,7 +43,8 @@ async fn main() -> Result<()> {
     let sender = client.sender();
     
     let irc_handler = IrcActorHandle::new(sender.clone());
-
+    let test_handler = TestActorHandle::new(sender.clone());
+    irc_handler.register(String::from("toast"), Box::new(test_handler));
     while let Some(message) = stream.next().await.transpose()? {
         if let irc::Command::PRIVMSG(ref _channel, ref text) = message.command {
 

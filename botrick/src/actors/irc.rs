@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use tokio::sync::mpsc;
 
 use crate::bot::CommandMessage;
@@ -6,17 +8,26 @@ use crate::bot::CommandMessage;
 struct IrcActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
     sender: irc::client::Sender,
+    handlers: HashMap<String, Box<dyn super::Actor>>
 }
 
 #[derive(Debug)]
 enum ActorMessage {
-    Guess {
-        word: String,
-        command: crate::bot::CommandMessage,
+    // Guess {
+    //     word: String,
+    //     command: crate::bot::CommandMessage,
+    // },
+    // GetState {
+    //     command: crate::bot::CommandMessage,
+    // },
+    Register {
+        command: String,
+        handler: Box<dyn super::Actor>,
     },
-    GetState {
-        command: crate::bot::CommandMessage,
-    },
+    Process {
+        command: String,
+        message: irc::proto::Message,
+    }
     // GetWord {
     //     command: crate::bot::CommandMessage,
     // },
@@ -24,14 +35,23 @@ enum ActorMessage {
 
 impl IrcActor {
     fn new(receiver: mpsc::UnboundedReceiver<ActorMessage>, sender: irc::client::Sender) -> Self {
-        let game = werdle::Game::new();
         IrcActor {
             receiver,
             sender,
+            handlers: HashMap::new(),
         }
     }
     fn handle_message(&mut self, msg: ActorMessage) {
-        println!("Got message: {:?}", msg);
+        tracing::debug!("Got message: {:?}", msg);
+        match msg {
+            ActorMessage::Register { command, handler } => {
+                self.handlers.insert(command, handler);
+            },
+            ActorMessage::Process { command, message } => {
+                let h = self.handlers.get(&command).unwrap();
+                h.process(message);
+            },
+        }
     }
 }
 
@@ -57,5 +77,14 @@ impl IrcActorHandle {
 
     pub fn process(&self, message: irc::proto::Message) {
         tracing::debug!("Received: {}", message);
+        if let irc::proto::Command::PRIVMSG(ref _channel, ref text) = message.command {
+            if text.starts_with("toast") {
+                let _ = self.sender.send( ActorMessage::Process { command: "toast".to_string(), message });
+            }
+        }
+    }
+
+    pub fn register(&self, command: String, handler: Box<dyn super::Actor>) {
+        let _ = self.sender.send( ActorMessage::Register { command, handler });
     }
 }

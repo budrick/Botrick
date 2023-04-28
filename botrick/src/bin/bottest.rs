@@ -9,7 +9,7 @@ So let's sketch out how this should go:
         - Said Actor will handle message parsing, handoff to the Logging actor, etc.
  */
 
-use botrick::actors::{IrcActorHandle, TestActorHandle};
+use botrick::actors::{IrcActorHandle, TestActorHandle, WerdleActorHandle};
 // use botrick::config as botconfig;
 use color_eyre::eyre::Result;
 use futures::StreamExt;
@@ -42,7 +42,12 @@ async fn main() -> Result<()> {
 
     let irc_handler = IrcActorHandle::new(sender.clone());
     let test_handler = TestActorHandle::new(sender.clone());
-    irc_handler.register(String::from("toast"), Box::new(test_handler));
+    let werdle_handler = WerdleActorHandle::new(sender.clone());
+
+    irc_handler.register("toast".into(), Box::new(test_handler));
+    irc_handler.register("wordle".into(), Box::new(werdle_handler));
+    // irc_handler.register(String::from("wordle"), Box::new(werdle_handler));
+
     while let Some(message) = stream.next().await.transpose()? {
         if let irc::Command::PRIVMSG(ref _channel, ref text) = message.command {
             // Reject CTCP - handled by the `irc` crate on its own

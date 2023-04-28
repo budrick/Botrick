@@ -50,6 +50,9 @@ impl TestActorHandle {
 impl super::api::Actor for TestActorHandle {
     fn process(&self, message: CommandMessage) {
         tracing::debug!("Test Actor Handle received: {:?}", message);
+        match message.command.as_str() {
+            _ => {}
+        }
         let _ = self.sender.send(ActorMessage::Test { message });
     }
 }

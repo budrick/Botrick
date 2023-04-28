@@ -15,7 +15,7 @@ impl From<irc::proto::Message> for CommandMessage {
             let params = text
                 .strip_prefix(&command)
                 .unwrap_or("")
-                .strip_prefix(" ")
+                .strip_prefix(' ')
                 .unwrap_or("")
                 .to_string();
             let full_text = text.to_string();

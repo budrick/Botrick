@@ -4,7 +4,7 @@ use crate::irc::CommandMessage;
 
 struct TestActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
-    sender: irc::client::Sender,
+    _sender: irc::client::Sender,
 }
 
 #[derive(Debug)]
@@ -14,7 +14,10 @@ enum ActorMessage {
 
 impl TestActor {
     fn new(receiver: mpsc::UnboundedReceiver<ActorMessage>, sender: irc::client::Sender) -> Self {
-        TestActor { receiver, sender }
+        TestActor {
+            receiver,
+            _sender: sender,
+        }
     }
     fn handle_message(&mut self, msg: ActorMessage) {
         tracing::debug!("Got message {:?}", msg);
@@ -50,9 +53,6 @@ impl TestActorHandle {
 impl super::api::Actor for TestActorHandle {
     fn process(&self, message: CommandMessage) {
         tracing::debug!("Test Actor Handle received: {:?}", message);
-        match message.command.as_str() {
-            _ => {}
-        }
         let _ = self.sender.send(ActorMessage::Test { message });
     }
 }

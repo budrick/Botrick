@@ -138,19 +138,6 @@ impl WerdleActorHandle {
         Self { sender }
     }
 
-    pub fn guess(&self, guess: String, command: CommandMessage) {
-        let msg = ActorMessage::Guess { command };
-
-        // Ignore send errors. If this send fails, so does the
-        // recv.await below. There's no reason to check the
-        // failure twice.
-        let _ = self.sender.send(msg);
-    }
-
-    pub fn get_state(&self, command: CommandMessage) {
-        let _ = self.sender.send(ActorMessage::GetState { command });
-    }
-
     // pub fn get_word(&self, command: CommandMessage) {
     //     println!("Get word");
     //     let _ = self.sender.send(ActorMessage::GetWord { command });

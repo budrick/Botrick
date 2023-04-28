@@ -11,7 +11,7 @@ use crate::irc::CommandMessage;
 
 struct IrcActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
-    sender: irc::client::Sender,
+    _sender: irc::client::Sender,
     handlers: HashMap<String, Box<dyn super::Actor>>,
 }
 
@@ -30,7 +30,7 @@ impl IrcActor {
     fn new(receiver: mpsc::UnboundedReceiver<ActorMessage>, sender: irc::client::Sender) -> Self {
         IrcActor {
             receiver,
-            sender,
+            _sender: sender,
             handlers: HashMap::new(),
         }
     }

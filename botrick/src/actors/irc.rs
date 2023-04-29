@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::Arc};
+use std::{char, collections::HashMap, sync::Arc};
 
 use regex::RegexSet;
 use tokio::sync::mpsc;
@@ -62,8 +62,11 @@ impl IrcActor {
                 self.regexes = RegexSet::new(self.regex_regexes.clone()).unwrap_or_default();
             }
             ActorMessage::Process { message } => {
-
-                let matches:Vec<_> = self.regexes.matches(message.full_text.as_str()).into_iter().collect();
+                let matches: Vec<_> = self
+                    .regexes
+                    .matches(message.full_text.as_str())
+                    .into_iter()
+                    .collect();
                 tracing::debug!("{:?}", matches);
                 if matches.is_empty() {
                     return;
@@ -118,14 +121,28 @@ impl IrcActorHandle {
     pub fn register_regex<I, S>(&self, regexes: I, handler: Arc<dyn super::Actor>)
     where
         S: ToString,
-        I: IntoIterator<Item = S>
-
+        I: IntoIterator<Item = S>,
     {
         let mut res: Vec<String> = Vec::new();
         for r in regexes {
             res.push(r.to_string());
         }
-        let _ = self.sender.send(ActorMessage::RegisterRegex { regexes: res, handler });
+        let _ = self.sender.send(ActorMessage::RegisterRegex {
+            regexes: res,
+            handler,
+        });
+    }
+
+    pub fn prefix<I: IntoIterator<Item = S>, S: ToString>(
+        &self,
+        prefix: char,
+        regexes: I,
+    ) -> Vec<String> {
+        let mut res: Vec<String> = Vec::new();
+        for r in regexes {
+            res.push(format!(r"^{}{}\b", prefix, r.to_string()));
+        }
+        res
     }
 
     pub fn refresh_regexes(&self) {

@@ -115,8 +115,17 @@ impl IrcActorHandle {
             .send(ActorMessage::Register { command, handler });
     }
 
-    pub fn register_regex(&self, regexes: Vec<String>, handler: Arc<dyn super::Actor>) {
-        let _ = self.sender.send(ActorMessage::RegisterRegex { regexes, handler });
+    pub fn register_regex<I, S>(&self, regexes: I, handler: Arc<dyn super::Actor>)
+    where
+        S: ToString,
+        I: IntoIterator<Item = S>
+
+    {
+        let mut res: Vec<String> = Vec::new();
+        for r in regexes {
+            res.push(r.to_string());
+        }
+        let _ = self.sender.send(ActorMessage::RegisterRegex { regexes: res, handler });
     }
 
     pub fn refresh_regexes(&self) {

@@ -1,5 +1,6 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
+use regex::RegexSet;
 use tokio::sync::mpsc;
 
 use crate::irc::CommandMessage;
@@ -13,6 +14,9 @@ struct IrcActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
     _sender: irc::client::Sender,
     handlers: HashMap<String, Box<dyn super::Actor>>,
+    regex_regexes: Vec<String>,
+    regex_handlers: Vec<Arc<dyn super::Actor>>,
+    regexes: RegexSet,
 }
 
 #[derive(Debug)]
@@ -21,6 +25,11 @@ enum ActorMessage {
         command: String,
         handler: Box<dyn super::Actor>,
     },
+    RegisterRegex {
+        regexes: Vec<String>,
+        handler: Arc<dyn super::Actor>,
+    },
+    RefreshRegexes,
     Process {
         message: Box<CommandMessage>,
     },
@@ -32,6 +41,9 @@ impl IrcActor {
             receiver,
             _sender: sender,
             handlers: HashMap::new(),
+            regex_regexes: Vec::new(),
+            regex_handlers: Vec::new(),
+            regexes: RegexSet::default(),
         }
     }
     fn handle_message(&mut self, msg: ActorMessage) {
@@ -40,12 +52,31 @@ impl IrcActor {
             ActorMessage::Register { command, handler } => {
                 self.handlers.insert(command, handler);
             }
-            ActorMessage::Process { message } => {
-                // TODO: Log anything that doesn't match a command.
-                if let Some(h) = self.handlers.get(&message.command) {
-                    tracing::debug!("Passing to handler: {:?}", message);
-                    h.process(*message);
+            ActorMessage::RegisterRegex { regexes, handler } => {
+                for reg in regexes {
+                    self.regex_regexes.push(reg);
+                    self.regex_handlers.push(handler.clone());
                 }
+            }
+            ActorMessage::RefreshRegexes => {
+                self.regexes = RegexSet::new(self.regex_regexes.clone()).unwrap_or_default();
+            }
+            ActorMessage::Process { message } => {
+
+                let matches:Vec<_> = self.regexes.matches(message.full_text.as_str()).into_iter().collect();
+                tracing::debug!("{:?}", matches);
+                if matches.is_empty() {
+                    return;
+                }
+
+                let handler = self.regex_handlers.get(matches[0]).unwrap();
+                handler.process(*message);
+
+                // // TODO: Log anything that doesn't match a command.
+                // if let Some(h) = self.handlers.get(&message.command) {
+                //     tracing::debug!("Passing to handler: {:?}", message);
+                //     h.process(*message);
+                // }
             }
         }
     }
@@ -82,5 +113,13 @@ impl IrcActorHandle {
         let _ = self
             .sender
             .send(ActorMessage::Register { command, handler });
+    }
+
+    pub fn register_regex(&self, regexes: Vec<String>, handler: Arc<dyn super::Actor>) {
+        let _ = self.sender.send(ActorMessage::RegisterRegex { regexes, handler });
+    }
+
+    pub fn refresh_regexes(&self) {
+        let _ = self.sender.send(ActorMessage::RefreshRegexes);
     }
 }

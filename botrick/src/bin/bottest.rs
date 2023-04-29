@@ -9,6 +9,8 @@ So let's sketch out how this should go:
         - Said Actor will handle message parsing, handoff to the Logging actor, etc.
  */
 
+use std::sync::Arc;
+
 use botrick::actors::{IrcActorHandle, TestActorHandle, WerdleActorHandle};
 // use botrick::config as botconfig;
 use color_eyre::eyre::Result;
@@ -44,9 +46,12 @@ async fn main() -> Result<()> {
     let test_handler = TestActorHandle::new(sender.clone());
     let werdle_handler = WerdleActorHandle::new(sender.clone());
 
-    irc_handler.register("toast".into(), Box::new(test_handler));
-    irc_handler.register("wordle".into(), Box::new(werdle_handler));
+    // irc_handler.register("toast".into(), Box::new(test_handler));
+    // irc_handler.register("wordle".into(), Box::new(werdle_handler));
     // irc_handler.register(String::from("wordle"), Box::new(werdle_handler));
+    irc_handler.register_regex([String::from("toast"), String::from("splerg")].into(), Arc::new(test_handler));
+    irc_handler.register_regex([String::from("wordle"), String::from("werdle")].into(), Arc::new(werdle_handler));
+    irc_handler.refresh_regexes();
 
     while let Some(message) = stream.next().await.transpose()? {
         if let irc::Command::PRIVMSG(ref _channel, ref text) = message.command {

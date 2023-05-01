@@ -112,20 +112,24 @@ impl IrcActorHandle {
         });
     }
 
-    pub fn register(&self, command: String, handler: Box<dyn super::Actor>) {
-        let _ = self
-            .sender
-            .send(ActorMessage::Register { command, handler });
+    pub fn register<S>(&self, command: S, handler: Box<dyn super::Actor>)
+    where
+        S: AsRef<str>,
+    {
+        let _ = self.sender.send(ActorMessage::Register {
+            command: command.as_ref().to_string(),
+            handler,
+        });
     }
 
     pub fn register_regex<I, S>(&self, regexes: I, handler: Arc<dyn super::Actor>)
     where
-        S: ToString,
+        S: AsRef<str>,
         I: IntoIterator<Item = S>,
     {
         let mut res: Vec<String> = Vec::new();
         for r in regexes {
-            res.push(r.to_string());
+            res.push(r.as_ref().to_string());
         }
         let _ = self.sender.send(ActorMessage::RegisterRegex {
             regexes: res,

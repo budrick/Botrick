@@ -49,10 +49,9 @@ async fn main() -> Result<()> {
     // irc_handler.register("toast".into(), Box::new(test_handler));
     // irc_handler.register("wordle".into(), Box::new(werdle_handler));
     // irc_handler.register(String::from("wordle"), Box::new(werdle_handler));
-    irc_handler.register_regex(["toast", "splerg"], Arc::new(test_handler));
-    irc_handler.register_regex(["wordle", "werdle"], Arc::new(werdle_handler.clone()));
+    // irc_handler.register_regex(["toast", "splerg"], Arc::new(test_handler));
     irc_handler.register_regex(
-        irc_handler.prefix('*', ["wardle", "wirdle"]),
+        irc_handler.prefix('%', ["wordle", "werdle"]),
         Arc::new(werdle_handler.clone()),
     );
     irc_handler.refresh_regexes();

@@ -1,3 +1,4 @@
+use clap::Command;
 use tokio::sync::mpsc;
 
 use crate::irc::CommandMessage;
@@ -27,7 +28,14 @@ impl SporkActor {
         match msg {
             ActorMessage::Spork { message } => {
                 tracing::debug!("Sporked {:?}", message);
-                let startw = self.spork.start();
+
+                let words: Vec<&str> = message.params.split_whitespace().collect();
+                let startw = if !words.is_empty() {
+                    self.spork.start_with_word(words[0])
+                } else {
+                    self.spork.start()
+                };
+
                 let output: String = match startw {
                     Some(word) => {
                         let mut words = sporker::build_words(word, &self.spork);
@@ -68,10 +76,19 @@ impl SporkActorHandle {
 impl super::api::Actor for SporkActorHandle {
     fn process(&self, message: CommandMessage) {
         tracing::debug!("Spork Actor Handle received: {:?}", message);
+        if &message.command == "7" {
+            let _ = self.sender.send(ActorMessage::Spork {
+                message: CommandMessage {
+                    params: "7".to_string(),
+                    ..message
+                },
+            });
+            return;
+        }
         let _ = match &message.command[1..] {
             "spork" => self.sender.send(ActorMessage::Spork { message }),
             "sporklike" => self.sender.send(ActorMessage::Spork { message }),
-            _ => return,
+            _ => Ok(()),
         };
     }
 }

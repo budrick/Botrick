@@ -69,6 +69,7 @@ async fn main() -> Result<()> {
         irc_handler.prefix('%', ["spork", "sporklike"]),
         Arc::new(spork_handler.clone()),
     );
+    irc_handler.register_regex([r"^7\b"], Arc::new(spork_handler.clone()));
     irc_handler.refresh_regexes();
 
     while let Some(message) = stream.next().await.transpose()? {

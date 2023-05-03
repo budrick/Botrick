@@ -11,17 +11,27 @@ So let's sketch out how this should go:
 
 use std::sync::Arc;
 
-use botrick::actors::{IrcActorHandle, TestActorHandle, WerdleActorHandle};
+use botrick::actors::{IrcActorHandle, SporkActorHandle, TestActorHandle, WerdleActorHandle};
 // use botrick::config as botconfig;
 use color_eyre::eyre::Result;
 use futures::StreamExt;
 use irc::client::prelude as irc;
+// use tracing_subscriber::prelude::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
     // Error formatting, good tracing
     color_eyre::install()?;
     tracing_subscriber::fmt::init();
+
+    // When we feel the need to use tokio-console - start here and comment the tracing_subscriber line above.
+    // and the prelude import too.
+
+    // let console_layer = console_subscriber::spawn();
+    // tracing_subscriber::registry()
+    //     .with(console_layer)
+    //     .with(tracing_subscriber::fmt::layer())
+    //     .init();
 
     // Parse command-line args, and set the working directory. Let it fail fast.
     let args = botrick::args::parse();
@@ -43,16 +53,21 @@ async fn main() -> Result<()> {
     let sender = client.sender();
 
     let irc_handler = IrcActorHandle::new(sender.clone());
-    let test_handler = TestActorHandle::new(sender.clone());
-    let werdle_handler = WerdleActorHandle::new(sender.clone());
 
+    // let test_handler = TestActorHandle::new(sender.clone());
     // irc_handler.register("toast".into(), Box::new(test_handler));
     // irc_handler.register("wordle".into(), Box::new(werdle_handler));
     // irc_handler.register(String::from("wordle"), Box::new(werdle_handler));
     // irc_handler.register_regex(["toast", "splerg"], Arc::new(test_handler));
+    let werdle_handler = WerdleActorHandle::new(sender.clone());
     irc_handler.register_regex(
         irc_handler.prefix('%', ["wordle", "werdle"]),
         Arc::new(werdle_handler.clone()),
+    );
+    let spork_handler = SporkActorHandle::new(sender.clone());
+    irc_handler.register_regex(
+        irc_handler.prefix('%', ["spork", "sporklike"]),
+        Arc::new(spork_handler.clone()),
     );
     irc_handler.refresh_regexes();
 

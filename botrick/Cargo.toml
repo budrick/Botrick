@@ -22,6 +22,7 @@ werdle = { path = "../werdle" }
 tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
 tracing = "0.1.37"
 color-eyre = "0.6.2"
+# console-subscriber = "0.1.8"
 
 [[bin]]
 name = "botrick"

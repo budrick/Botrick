@@ -15,6 +15,7 @@ struct IrcActor {
     _sender: irc::client::Sender,
     handlers: HashMap<String, Box<dyn super::Actor>>,
     regex_regexes: Vec<String>,
+    regex_prefixes: Vec<Option<char>>,
     regex_handlers: Vec<Arc<dyn super::Actor>>,
     regexes: RegexSet,
 }
@@ -26,6 +27,7 @@ enum ActorMessage {
         handler: Box<dyn super::Actor>,
     },
     RegisterRegex {
+        prefix: Option<char>,
         regexes: Vec<String>,
         handler: Arc<dyn super::Actor>,
     },
@@ -42,6 +44,7 @@ impl IrcActor {
             _sender: sender,
             handlers: HashMap::new(),
             regex_regexes: Vec::new(),
+            regex_prefixes: Vec::new(),
             regex_handlers: Vec::new(),
             regexes: RegexSet::default(),
         }
@@ -52,9 +55,14 @@ impl IrcActor {
             ActorMessage::Register { command, handler } => {
                 self.handlers.insert(command, handler);
             }
-            ActorMessage::RegisterRegex { regexes, handler } => {
+            ActorMessage::RegisterRegex {
+                prefix,
+                regexes,
+                handler,
+            } => {
                 for reg in regexes {
                     self.regex_regexes.push(reg);
+                    self.regex_prefixes.push(prefix);
                     self.regex_handlers.push(handler.clone());
                 }
             }
@@ -122,8 +130,12 @@ impl IrcActorHandle {
         });
     }
 
-    pub fn register_regex<I, S>(&self, regexes: I, handler: Arc<dyn super::Actor>)
-    where
+    pub fn register_regex<I, S>(
+        &self,
+        regexes: I,
+        handler: Arc<dyn super::Actor>,
+        prefix: Option<char>,
+    ) where
         S: AsRef<str>,
         I: IntoIterator<Item = S>,
     {
@@ -132,12 +144,26 @@ impl IrcActorHandle {
             res.push(r.as_ref().to_string());
         }
         let _ = self.sender.send(ActorMessage::RegisterRegex {
+            prefix: None,
             regexes: res,
             handler,
         });
     }
 
-    pub fn prefix<I: IntoIterator<Item = S>, S: ToString>(
+    pub fn register_prefixed<I, S>(&self, prefix: char, commands: I, handler: Arc<dyn super::Actor>)
+    where
+        S: AsRef<str>,
+        I: IntoIterator<Item = S>,
+    {
+        let mut res: Vec<String> = Vec::new();
+        for c in commands {
+            res.push(c.as_ref().to_string());
+        }
+        let cmds = self.create_prefixed_regex(prefix, res);
+        self.register_regex(cmds, handler, Some(prefix));
+    }
+
+    pub fn create_prefixed_regex<I: IntoIterator<Item = S>, S: ToString>(
         &self,
         prefix: char,
         regexes: I,

@@ -54,22 +54,13 @@ async fn main() -> Result<()> {
 
     let irc_handler = IrcActorHandle::new(sender.clone());
 
-    // let test_handler = TestActorHandle::new(sender.clone());
-    // irc_handler.register("toast".into(), Box::new(test_handler));
-    // irc_handler.register("wordle".into(), Box::new(werdle_handler));
-    // irc_handler.register(String::from("wordle"), Box::new(werdle_handler));
-    // irc_handler.register_regex(["toast", "splerg"], Arc::new(test_handler));
-    let werdle_handler = WerdleActorHandle::new(sender.clone());
-    irc_handler.register_regex(
-        irc_handler.prefix('%', ["wordle", "werdle"]),
-        Arc::new(werdle_handler.clone()),
-    );
-    let spork_handler = SporkActorHandle::new(sender.clone());
-    irc_handler.register_regex(
-        irc_handler.prefix('%', ["spork", "sporklike"]),
-        Arc::new(spork_handler.clone()),
-    );
-    irc_handler.register_regex([r"^7\b"], Arc::new(spork_handler.clone()));
+    let werdle_handler = Arc::new(WerdleActorHandle::new(sender.clone()));
+    irc_handler.register_prefixed('%', ["wordle", "werdle"], werdle_handler);
+
+    let spork_handler = Arc::new(SporkActorHandle::new(sender.clone()));
+    irc_handler.register_prefixed('%', ["spork", "sporklike"], spork_handler.clone());
+    irc_handler.register_regex([r"^7\b"], spork_handler.clone(), None);
+
     irc_handler.refresh_regexes();
 
     while let Some(message) = stream.next().await.transpose()? {

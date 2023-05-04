@@ -1,14 +1,18 @@
 use std::sync::Arc;
 
-use tokio::sync::mpsc;
 use irc::proto::FormattedStringExt;
+use tokio::sync::mpsc;
 
-use crate::{irc::CommandMessage, color::{colorize, Color}, config::Config};
+use crate::{
+    color::{colorize, Color},
+    config::Config,
+    irc::CommandMessage,
+};
 
 struct DefaultActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
     sender: irc::client::Sender,
-    config: Arc<Config>
+    config: Arc<Config>,
 }
 
 #[derive(Debug)]
@@ -18,36 +22,28 @@ enum ActorMessage {
 }
 
 impl DefaultActor {
-    fn new(receiver: mpsc::UnboundedReceiver<ActorMessage>, sender: irc::client::Sender, config: Arc<Config>) -> Self {
-        DefaultActor { receiver, sender, config }
+    fn new(
+        receiver: mpsc::UnboundedReceiver<ActorMessage>,
+        sender: irc::client::Sender,
+        config: Arc<Config>,
+    ) -> Self {
+        DefaultActor {
+            receiver,
+            sender,
+            config,
+        }
     }
     fn handle_message(&mut self, msg: ActorMessage) {
         tracing::debug!("Got message {:?}", msg);
         match msg {
             ActorMessage::Default { message } => {
-                let stripped = message.full_text.as_str().strip_formatting();
-                for rej in &self.config.inspect_rejects {
-                    if stripped.contains(rej) {
-                        return;
-                    }
-                }
-                let urls = get_urls(&message.full_text.as_str());
-                if !self.config.inspect_urls || urls.is_empty() {
-                    return;
-                }
-                let title = get_url_title(urls[0].as_str());
-                if title.is_none() {
-                    return;
-                }
-                let colbit = colorize(Color::Green, None, "LINK >>");
-                let _ = self.sender
-                    .send_privmsg(
-                        &message.respond_to,
-                        format!("{} {}", colbit, title.unwrap())
-                    );
-            },
+                tokio::spawn(scan_urls(message, self.config.clone(), self.sender.clone()));
+            }
             ActorMessage::Bots { message } => {
-                let _ = self.sender.send_privmsg(message.respond_to, "Reporting in! [Rust🦀] just %spork or %sporklike, yo.".to_string());
+                let _ = self.sender.send_privmsg(
+                    message.respond_to,
+                    "Reporting in! [Rust🦀] just %spork or %sporklike, yo.".to_string(),
+                );
             }
         };
     }
@@ -85,6 +81,27 @@ impl super::api::Actor for DefaultActorHandle {
     }
 }
 
+async fn scan_urls(message: CommandMessage, config: Arc<Config>, sender: irc::client::Sender) {
+    let stripped = message.full_text.as_str().strip_formatting();
+    for rej in &config.inspect_rejects {
+        if stripped.contains(rej) {
+            return;
+        }
+    }
+    let urls = get_urls(message.full_text.as_str());
+    if !config.inspect_urls || urls.is_empty() {
+        return;
+    }
+    let title = get_url_title(urls[0].as_str()).await;
+    if title.is_none() {
+        return;
+    }
+    let colbit = colorize(Color::Green, None, "LINK >>");
+    let _ = sender.send_privmsg(
+        &message.respond_to,
+        format!("{} {}", colbit, title.unwrap()),
+    );
+}
 
 pub fn get_urls(message: &str) -> Vec<linkify::Link> {
     let mut linkfinder = linkify::LinkFinder::new();
@@ -92,11 +109,11 @@ pub fn get_urls(message: &str) -> Vec<linkify::Link> {
     linkfinder.links(message).collect()
 }
 
-pub fn get_url_title(url: &str) -> Option<String> {
+async fn get_url_title(url: &str) -> Option<String> {
     if url.is_empty() {
         return None;
     }
-    let response_o = reqwest::blocking::get(url);
+    let response_o = reqwest::get(url).await;
     if response_o.is_err() {
         return None;
     }
@@ -112,7 +129,7 @@ pub fn get_url_title(url: &str) -> Option<String> {
         .unwrap_or_default()
         .starts_with("text/html")
     {
-        let body = response.text().unwrap_or_default();
+        let body = response.text().await.unwrap_or_default();
         let doc = select::document::Document::from(body.as_str());
         let f: Vec<_> = doc.find(select::predicate::Name("title")).take(1).collect();
         if f.is_empty() {

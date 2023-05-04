@@ -11,9 +11,13 @@ So let's sketch out how this should go:
 
 use std::sync::Arc;
 
-use botrick::{actors::{
-    DefaultActorHandle, IrcActorHandle, SporkActorHandle, TestActorHandle, WerdleActorHandle,
-}, bot, config::Config};
+use botrick::{
+    actors::{
+        DefaultActorHandle, IrcActorHandle, SporkActorHandle, TestActorHandle, WerdleActorHandle,
+    },
+    bot,
+    config::Config,
+};
 // use botrick::config as botconfig;
 use color_eyre::eyre::Result;
 use futures::StreamExt;
@@ -54,12 +58,12 @@ async fn main() -> Result<()> {
     let mut stream = client.stream()?;
     let sender = client.sender();
 
-    let default_handler = Arc::new(DefaultActorHandle::new(sender.clone(), Arc::new(bot_config)));
-
-    let irc_handler = IrcActorHandle::new(
+    let default_handler = Arc::new(DefaultActorHandle::new(
         sender.clone(),
-        default_handler.clone(),
-    );
+        Arc::new(bot_config),
+    ));
+
+    let irc_handler = IrcActorHandle::new(sender.clone(), default_handler.clone());
 
     let werdle_handler = Arc::new(WerdleActorHandle::new(sender.clone()));
     irc_handler.register_prefixed('%', ["wordle", "werdle"], werdle_handler);

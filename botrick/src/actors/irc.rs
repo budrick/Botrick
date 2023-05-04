@@ -18,7 +18,7 @@ struct IrcActor {
     regex_prefixes: Vec<Option<char>>,
     regex_handlers: Vec<Arc<dyn super::Actor>>,
     regexes: RegexSet,
-    default_handler: Arc<dyn super::Actor>
+    default_handler: Arc<dyn super::Actor>,
 }
 
 #[derive(Debug)]
@@ -39,7 +39,11 @@ enum ActorMessage {
 }
 
 impl IrcActor {
-    fn new(receiver: mpsc::UnboundedReceiver<ActorMessage>, sender: irc::client::Sender, default_handler: Arc<dyn super::Actor>) -> Self {
+    fn new(
+        receiver: mpsc::UnboundedReceiver<ActorMessage>,
+        sender: irc::client::Sender,
+        default_handler: Arc<dyn super::Actor>,
+    ) -> Self {
         IrcActor {
             receiver,
             _sender: sender,
@@ -48,7 +52,7 @@ impl IrcActor {
             regex_prefixes: Vec::new(),
             regex_handlers: Vec::new(),
             regexes: RegexSet::default(),
-            default_handler
+            default_handler,
         }
     }
     fn handle_message(&mut self, msg: ActorMessage) {
@@ -81,7 +85,6 @@ impl IrcActor {
                 if matches.is_empty() {
                     self.default_handler.process(*message);
                 } else {
-
                     let handler = self.regex_handlers.get(matches[0]).unwrap();
                     handler.process(*message);
                 }

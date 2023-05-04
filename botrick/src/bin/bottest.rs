@@ -11,7 +11,9 @@ So let's sketch out how this should go:
 
 use std::sync::Arc;
 
-use botrick::actors::{IrcActorHandle, SporkActorHandle, TestActorHandle, WerdleActorHandle};
+use botrick::{actors::{
+    DefaultActorHandle, IrcActorHandle, SporkActorHandle, TestActorHandle, WerdleActorHandle,
+}, bot, config::Config};
 // use botrick::config as botconfig;
 use color_eyre::eyre::Result;
 use futures::StreamExt;
@@ -39,7 +41,7 @@ async fn main() -> Result<()> {
     std::env::set_current_dir(dir)?;
 
     // Load configuration file or die trying
-    // let bot_config: botconfig::Config = confy::load_path(std::path::Path::new("botrick.toml"))?;
+    let bot_config: Config = confy::load_path(std::path::Path::new("botrick.toml"))?;
 
     // Spin up IRC loop
     let user_config = irc::Config::load("irc.toml")?;
@@ -52,14 +54,20 @@ async fn main() -> Result<()> {
     let mut stream = client.stream()?;
     let sender = client.sender();
 
-    let irc_handler = IrcActorHandle::new(sender.clone());
+    let default_handler = Arc::new(DefaultActorHandle::new(sender.clone(), Arc::new(bot_config)));
+
+    let irc_handler = IrcActorHandle::new(
+        sender.clone(),
+        default_handler.clone(),
+    );
 
     let werdle_handler = Arc::new(WerdleActorHandle::new(sender.clone()));
     irc_handler.register_prefixed('%', ["wordle", "werdle"], werdle_handler);
 
     let spork_handler = Arc::new(SporkActorHandle::new(sender.clone()));
     irc_handler.register_prefixed('%', ["spork", "sporklike"], spork_handler.clone());
-    irc_handler.register_regex([r"^7\b"], spork_handler.clone(), None);
+    irc_handler.register_regex([r"^7$"], spork_handler.clone(), None);
+    irc_handler.register_regex([r"^\.bots\b"], default_handler.clone(), None);
 
     irc_handler.refresh_regexes();
 

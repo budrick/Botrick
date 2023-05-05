@@ -1,4 +1,3 @@
-use clap::Command;
 use tokio::sync::mpsc;
 
 use crate::irc::CommandMessage;

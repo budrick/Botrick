@@ -6,13 +6,14 @@ use tokio::sync::mpsc;
 use crate::{
     color::{colorize, Color},
     config::Config,
-    irc::CommandMessage,
+    irc::CommandMessage, actors::logger::LogActorHandle,
 };
 
 struct DefaultActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
     sender: irc::client::Sender,
     config: Arc<Config>,
+    logger: crate::actors::LogActorHandle,
 }
 
 #[derive(Debug)]
@@ -26,18 +27,21 @@ impl DefaultActor {
         receiver: mpsc::UnboundedReceiver<ActorMessage>,
         sender: irc::client::Sender,
         config: Arc<Config>,
+        logger: crate::actors::LogActorHandle,
     ) -> Self {
         DefaultActor {
             receiver,
             sender,
             config,
+            logger,
         }
     }
     fn handle_message(&mut self, msg: ActorMessage) {
         tracing::debug!("Got message {:?}", msg);
         match msg {
             ActorMessage::Default { message } => {
-                tokio::spawn(scan_urls(message, self.config.clone(), self.sender.clone()));
+                tokio::spawn(scan_urls(message.clone(), self.config.clone(), self.sender.clone()));
+                self.logger.log(message);
             }
             ActorMessage::Bots { message } => {
                 let _ = self.sender.send_privmsg(
@@ -63,7 +67,7 @@ pub struct DefaultActorHandle {
 impl DefaultActorHandle {
     pub fn new(ircsender: irc::client::Sender, config: Arc<Config>) -> Self {
         let (sender, receiver) = mpsc::unbounded_channel();
-        let actor = DefaultActor::new(receiver, ircsender, config);
+        let actor = DefaultActor::new(receiver, ircsender, config, LogActorHandle::new());
         tokio::spawn(run_my_actor(actor));
 
         Self { sender }

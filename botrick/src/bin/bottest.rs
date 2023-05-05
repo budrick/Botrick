@@ -78,7 +78,7 @@ async fn main() -> Result<()> {
     while let Some(message) = stream.next().await.transpose()? {
         if let irc::Command::PRIVMSG(ref _channel, ref text) = message.command {
             // Reject CTCP - handled by the `irc` crate on its own
-            if text.starts_with('\u{1}') {
+            if text.starts_with('\u{1}') && !text.starts_with("\u{001}ACTION") {
                 continue;
             }
             irc_handler.process(message);

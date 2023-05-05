@@ -140,7 +140,7 @@ impl IrcActorHandle {
         &self,
         regexes: I,
         handler: Arc<dyn super::Actor>,
-        prefix: Option<char>,
+        _prefix: Option<char>,
     ) where
         S: AsRef<str>,
         I: IntoIterator<Item = S>,

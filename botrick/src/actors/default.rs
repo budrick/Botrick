@@ -46,7 +46,7 @@ impl DefaultActor {
             ActorMessage::Bots { message } => {
                 let _ = self.sender.send_privmsg(
                     message.respond_to,
-                    "Reporting in! [Rust🦀] just %spork or %sporklike, yo.".to_string(),
+                    format!("Reporting in! [Rust 🦀] just %spork or %sporklike, yo. v{}", crate::PKG_VERSION)
                 );
             }
         };

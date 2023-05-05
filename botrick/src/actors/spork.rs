@@ -46,7 +46,32 @@ impl SporkActor {
 
                 let _ = self._sender.send_privmsg(&message.respond_to, output);
             }
-            ActorMessage::Sporklike { message } => todo!(),
+            ActorMessage::Sporklike { message } => {
+                tracing::debug!("Sporkliked {:?}", message);
+
+                let words: Vec<&str> = message.params.split_whitespace().collect();
+
+                if words.is_empty() {
+                    let _ = self._sender.send_privmsg(&message.respond_to, "Talking about nobody is it");
+                    return;
+                }
+
+                let startw = match words.len() {
+                    1 => self.spork.start_like(words[0]),
+                    _ => self.spork.start_with_word_like(words[1], words[0]),
+                };
+
+                let output: String = match startw {
+                    Some(word) => {
+                        let mut words = sporker::build_words_like(word, &self.spork, words[0]);
+                        words.insert(0, format!("{}:", &message.sent_by));
+                        words.join(" ")
+                    }
+                    _ => String::from("Couldn't do it could I"),
+                };
+
+                let _ = self._sender.send_privmsg(&message.respond_to, output);
+            }
         };
     }
 }
@@ -86,7 +111,7 @@ impl super::api::Actor for SporkActorHandle {
         }
         let _ = match &message.command[1..] {
             "spork" => self.sender.send(ActorMessage::Spork { message }),
-            "sporklike" => self.sender.send(ActorMessage::Spork { message }),
+            "sporklike" => self.sender.send(ActorMessage::Sporklike { message }),
             _ => Ok(()),
         };
     }

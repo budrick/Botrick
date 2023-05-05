@@ -1,11 +1,7 @@
 pub mod args;
-pub mod bot;
-// mod channelizer;
 pub mod color;
 pub mod config;
 pub mod logger;
-pub mod werdleactor;
-
 pub mod actors;
 pub mod irc;
 

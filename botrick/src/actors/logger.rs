@@ -23,7 +23,9 @@ impl LogActor {
             LogActorMessage::Log { message } => {
                 tracing::debug!("Logger got {:?}", message);
                 let nick = message.sent_by;
-                if !message.full_text.starts_with('\u{001}') || message.full_text.starts_with("\u{001}ACTION") {
+                if !message.full_text.starts_with('\u{001}')
+                    || message.full_text.starts_with("\u{001}ACTION")
+                {
                     self.spork.log_message(&nick, &message.full_text);
                 }
             }

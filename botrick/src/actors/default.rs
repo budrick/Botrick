@@ -4,9 +4,10 @@ use irc::proto::FormattedStringExt;
 use tokio::sync::mpsc;
 
 use crate::{
+    actors::logger::LogActorHandle,
     color::{colorize, Color},
     config::Config,
-    irc::CommandMessage, actors::logger::LogActorHandle,
+    irc::CommandMessage,
 };
 
 struct DefaultActor {
@@ -40,13 +41,20 @@ impl DefaultActor {
         tracing::debug!("Got message {:?}", msg);
         match msg {
             ActorMessage::Default { message } => {
-                tokio::spawn(scan_urls(message.clone(), self.config.clone(), self.sender.clone()));
+                tokio::spawn(scan_urls(
+                    message.clone(),
+                    self.config.clone(),
+                    self.sender.clone(),
+                ));
                 self.logger.log(message);
             }
             ActorMessage::Bots { message } => {
                 let _ = self.sender.send_privmsg(
                     message.respond_to,
-                    format!("Reporting in! [Rust 🦀] just %spork or %sporklike, yo. v{}", crate::PKG_VERSION)
+                    format!(
+                        "Reporting in! [Rust 🦀] just %spork or %sporklike, yo. v{}",
+                        crate::PKG_VERSION
+                    ),
                 );
             }
         };

@@ -52,7 +52,9 @@ impl SporkActor {
                 let words: Vec<&str> = message.params.split_whitespace().collect();
 
                 if words.is_empty() {
-                    let _ = self._sender.send_privmsg(&message.respond_to, "Talking about nobody is it");
+                    let _ = self
+                        ._sender
+                        .send_privmsg(&message.respond_to, "Talking about nobody is it");
                     return;
                 }
 

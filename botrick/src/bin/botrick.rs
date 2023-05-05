@@ -12,9 +12,7 @@ So let's sketch out how this should go:
 use std::sync::Arc;
 
 use botrick::{
-    actors::{
-        DefaultActorHandle, IrcActorHandle, SporkActorHandle, WerdleActorHandle,
-    },
+    actors::{DefaultActorHandle, IrcActorHandle, SporkActorHandle, WerdleActorHandle},
     config::Config,
 };
 // use botrick::config as botconfig;

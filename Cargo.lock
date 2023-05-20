@@ -154,6 +154,7 @@ dependencies = [
  "irc",
  "lazy_static",
  "linkify",
+ "rand",
  "regex",
  "reqwest",
  "select",

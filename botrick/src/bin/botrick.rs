@@ -12,7 +12,7 @@ So let's sketch out how this should go:
 use std::sync::Arc;
 
 use botrick::{
-    actors::{DefaultActorHandle, IrcActorHandle, SporkActorHandle, WerdleActorHandle},
+    actors::{DefaultActorHandle, IrcActorHandle, SporkActorHandle, WerdleActorHandle, MiscActorHandle},
     config::Config,
 };
 // use botrick::config as botconfig;
@@ -43,6 +43,7 @@ async fn main() -> Result<()> {
 
     // Load configuration file or die trying
     let bot_config: Config = confy::load_path(std::path::Path::new("botrick.toml"))?;
+    let bot_config_ref = Arc::new(bot_config);
 
     // Spin up IRC loop
     let user_config = irc::Config::load("irc.toml")?;
@@ -57,18 +58,22 @@ async fn main() -> Result<()> {
 
     let default_handler = Arc::new(DefaultActorHandle::new(
         sender.clone(),
-        Arc::new(bot_config),
+        bot_config_ref.clone(),
     ));
 
     let irc_handler = IrcActorHandle::new(sender.clone(), default_handler.clone());
 
     let werdle_handler = Arc::new(WerdleActorHandle::new(sender.clone()));
-    irc_handler.register_prefixed('%', ["wordle", "werdle"], werdle_handler);
+    irc_handler.register_prefixed(bot_config_ref.command_prefix, ["wordle", "werdle"], werdle_handler);
 
     let spork_handler = Arc::new(SporkActorHandle::new(sender.clone()));
-    irc_handler.register_prefixed('%', ["spork", "sporklike"], spork_handler.clone());
+    irc_handler.register_prefixed(bot_config_ref.command_prefix, ["spork", "sporklike"], spork_handler.clone());
     irc_handler.register_regex([r"^7$"], spork_handler.clone(), None);
     irc_handler.register_regex([r"^\.bots\b"], default_handler.clone(), None);
+
+    let misc_handler = Arc::new(MiscActorHandle::new(sender.clone()));
+    irc_handler.register_prefixed(bot_config_ref.command_prefix, ["isit"], misc_handler.clone());
+    irc_handler.register_prefixed('~', ["isit"], misc_handler.clone());
 
     irc_handler.refresh_regexes();
 

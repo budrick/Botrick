@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Default, Debug, Serialize, Deserialize, Clone)]
 pub struct Config {
-    pub command_prefix: String,
+    pub command_prefix: char,
     pub inspect_urls: bool,
     pub inspect_rejects: Vec<String>,
 }

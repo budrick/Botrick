@@ -1,6 +1,6 @@
-use tokio::sync::mpsc;
+use crate::{color::colorize, irc::CommandMessage};
 use rand::prelude::*;
-use crate::{irc::CommandMessage, color::colorize};
+use tokio::sync::mpsc;
 
 struct MiscActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
@@ -25,14 +25,14 @@ impl MiscActor {
             ActorMessage::Isit { message } => {
                 tracing::debug!("Isit");
 
-                let isit:bool = random();
+                let isit: bool = random();
                 let output = if isit {
                     colorize(crate::color::Color::Red, None, "It is")
                 } else {
                     colorize(crate::color::Color::Red, None, "Just isn't")
                 };
 
-                let _ = self._sender.send_privmsg(&message.respond_to, output);
+                let _ = self._sender.send_privmsg(message.respond_to, output);
             }
         };
     }

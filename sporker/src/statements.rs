@@ -5,8 +5,8 @@ pub fn random_start(db: &Connection) -> CachedStatement<'_> {
         .prepare_cached(
             "SELECT werd, nextwerd, prevwerd FROM werdz
         WHERE _ROWID_ >= (abs(random()) % (SELECT max(_ROWID_) FROM werdz))
-        AND (prevwerd = ''
-        OR nextwerd = '')
+        AND (prevwerd != ''
+        OR nextwerd != '')
         LIMIT 1;",
         )
         .unwrap();
@@ -19,8 +19,8 @@ pub fn random_start_like(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
             "SELECT werd, nextwerd, prevwerd FROM werdz
-        WHERE (prevwerd = ''
-        OR nextwerd = '')
+        WHERE (prevwerd != ''
+        OR nextwerd != '')
         AND normalizedsaidby = lower(:saidby)
         AND random() % 143 = 0
         LIMIT 1;",
@@ -34,7 +34,7 @@ pub fn search_start(db: &Connection) -> CachedStatement<'_> {
             "SELECT werd, nextwerd, prevwerd FROM werdz 
         WHERE rowid IN (
             SELECT rowid FROM werdz
-            WHERE werd = :werd AND (prevwerd = '' OR nextwerd = '')
+            WHERE werd = :werd AND (prevwerd != '' OR nextwerd != '')
             ORDER BY RANDOM()
             LIMIT 1
         );",
@@ -48,7 +48,7 @@ pub fn search_start_like(db: &Connection) -> CachedStatement<'_> {
             "SELECT werd, nextwerd, prevwerd FROM werdz 
         WHERE rowid IN (
             SELECT rowid FROM werdz
-            WHERE werd = :werd AND (prevwerd = '' OR nextwerd = '')
+            WHERE werd = :werd AND (prevwerd != '' OR nextwerd != '')
                 AND normalizedsaidby = lower(:saidby)
             ORDER BY RANDOM()
             LIMIT 1

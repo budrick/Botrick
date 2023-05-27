@@ -233,13 +233,13 @@ impl Spork {
 
         // Otherwise, LET'S LOGGING
         for (i, word) in words_iter {
-            let mut prev: Option<&str> = None;
-            let mut next: Option<&str> = None;
+            let mut prev = "";
+            let mut next = "";
             if i != 0 {
-                prev = Some(words[i - 1]);
+                prev = words[i - 1];
             }
             if i != words.len() - 1 {
-                next = Some(words[i + 1]);
+                next = words[i + 1];
             }
             let _res = stmt.execute(
                 named_params! {":werd": word, ":nextwerd": next, ":prevwerd": prev, ":saidby": who},

@@ -29,6 +29,10 @@ rand = "0.8.5"
 name = "botrick"
 path = "src/bin/botrick.rs"
 
+[dev-dependencies]
+itertools = "0.11.0"
+rusqlite = "0.29.0"
+
 # [[bin]]
 # name = "spork"
 # path = "src/spork.rs"

@@ -8,5 +8,5 @@ edition = "2021"
 [dependencies]
 clap = "4.0.18"
 color-eyre = "0.6.2"
-sporker = { version = "0.2.0", path = "../sporker" }
+sporker = { path = "../sporker" }
 tokio = "1.21.2"

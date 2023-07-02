@@ -287,6 +287,52 @@ pub fn build_words(w: Foon, s: &Spork) -> Vec<String> {
     words
 }
 
+pub fn create_table(db: &Connection) -> Result<(), rusqlite::Error> {
+    db.execute(
+        "CREATE TABLE IF NOT EXISTS werdz (
+        saidby TEXT NOT NULL,
+        normalizedsaidby TEXT NOT NULL,
+        werd TEXT NOT NULL,
+        prevwerd TEXT NOT NULL,
+        nextwerd TEXT NOT NULL,
+        UNIQUE (saidby, normalizedsaidby, werd, prevwerd, nextwerd)
+    );",
+        (),
+    )?;
+
+    Ok(())
+}
+
+pub fn create_indexes(db: &Connection) -> Result<(), rusqlite::Error> {
+    db.execute("CREATE INDEX nextprev on werdz (prevwerd, nextwerd);", ())?;
+    db.execute(
+        "CREATE INDEX werdsearch ON werdz(werd, prevwerd, nextwerd);",
+        (),
+    )?;
+    db.execute(
+        "CREATE INDEX saidby ON werdz(saidby, normalizedsaidby);",
+        (),
+    )?;
+    db.execute(
+        "CREATE INDEX werdsaidby on werdz(werd, normalizedsaidby);",
+        (),
+    )?;
+    db.execute(
+        "CREATE INDEX werdprev on werdz(werd, prevwerd, normalizedsaidby);",
+        (),
+    )?;
+    db.execute(
+        "CREATE INDEX werdnext on werdz(werd, nextwerd, normalizedsaidby);",
+        (),
+    )?;
+
+    Ok(())
+}
+
+pub fn get_log_stmt<'a>(db: &'a rusqlite::Transaction<'a>) -> rusqlite::CachedStatement<'a> {
+    statements::save_word(db)
+}
+
 // Does what it says. Given a start word and a Spork, do the needful.
 pub fn build_words_like(w: Foon, s: &Spork, saidby: &str) -> Vec<String> {
     // let mut words = Vec::<String>::new();

@@ -3,11 +3,13 @@ use rusqlite::{CachedStatement, Connection};
 pub fn random_start(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
-            "SELECT werd, nextwerd, prevwerd FROM werdz
+            "
+            SELECT werd, nextwerd, prevwerd FROM werdz
         WHERE _ROWID_ >= (abs(random()) % (SELECT max(_ROWID_) FROM werdz))
         AND (prevwerd != ''
         OR nextwerd != '')
-        LIMIT 1;",
+        LIMIT 1;
+        ",
         )
         .unwrap();
 }
@@ -18,12 +20,14 @@ pub fn random_start_like(db: &Connection) -> CachedStatement<'_> {
     // ORIGINALLY: https://gist.github.com/swayson/84fc86da20db89b56eac
     return db
         .prepare_cached(
-            "SELECT werd, nextwerd, prevwerd FROM werdz
+            "
+            SELECT werd, nextwerd, prevwerd FROM werdz
         WHERE (prevwerd != ''
         OR nextwerd != '')
         AND normalizedsaidby = lower(:saidby)
         AND random() % 143 = 0
-        LIMIT 1;",
+        LIMIT 1;
+        ",
         )
         .unwrap();
 }
@@ -31,13 +35,15 @@ pub fn random_start_like(db: &Connection) -> CachedStatement<'_> {
 pub fn search_start(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
-            "SELECT werd, nextwerd, prevwerd FROM werdz 
+            "
+            SELECT werd, nextwerd, prevwerd FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd AND (prevwerd != '' OR nextwerd != '')
             ORDER BY RANDOM()
             LIMIT 1
-        );",
+        );
+        ",
         )
         .unwrap();
 }
@@ -45,14 +51,16 @@ pub fn search_start(db: &Connection) -> CachedStatement<'_> {
 pub fn search_start_like(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
-            "SELECT werd, nextwerd, prevwerd FROM werdz 
+            "
+            SELECT werd, nextwerd, prevwerd FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd AND (prevwerd != '' OR nextwerd != '')
                 AND normalizedsaidby = lower(:saidby)
             ORDER BY RANDOM()
             LIMIT 1
-        );",
+        );
+        ",
         )
         .unwrap();
 }
@@ -60,7 +68,8 @@ pub fn search_start_like(db: &Connection) -> CachedStatement<'_> {
 pub fn search_next(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
-            "SELECT werd, nextwerd, prevwerd FROM werdz
+            "
+            SELECT werd, nextwerd, prevwerd FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd
@@ -68,7 +77,8 @@ pub fn search_next(db: &Connection) -> CachedStatement<'_> {
             ORDER BY RANDOM()
             LIMIT 1
         )
-        LIMIT 1;",
+        LIMIT 1;
+        ",
         )
         .unwrap();
 }
@@ -85,7 +95,8 @@ pub fn search_next_like(db: &Connection) -> CachedStatement<'_> {
             ORDER BY RANDOM()
             LIMIT 1
         )
-        LIMIT 1;",
+        LIMIT 1;
+        ",
         )
         .unwrap();
 }
@@ -101,7 +112,8 @@ pub fn search_prev(db: &Connection) -> CachedStatement<'_> {
             ORDER BY RANDOM()
             LIMIT 1
         )
-        LIMIT 1;",
+        LIMIT 1;
+        ",
         )
         .unwrap();
 }
@@ -118,7 +130,8 @@ pub fn search_prev_like(db: &Connection) -> CachedStatement<'_> {
             ORDER BY RANDOM()
             LIMIT 1
         )
-        LIMIT 1;",
+        LIMIT 1;
+        ",
         )
         .unwrap();
 }
@@ -126,13 +139,15 @@ pub fn search_prev_like(db: &Connection) -> CachedStatement<'_> {
 pub fn save_word(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
-            "INSERT INTO werdz (werd, nextwerd, prevwerd, saidby, normalizedsaidby) VALUES (
+            "
+            INSERT INTO werdz (werd, nextwerd, prevwerd, saidby, normalizedsaidby) VALUES (
         :werd,
         :nextwerd,
         :prevwerd,
         :saidby,
         lower(:saidby)
-    )",
+    )
+    ",
         )
         .unwrap();
 }

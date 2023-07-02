@@ -1,6 +1,5 @@
 use clap::Parser;
 use color_eyre::{eyre::Result};
-use itertools::Itertools;
 use rusqlite::named_params;
 use std::{
     fs::File,
@@ -46,7 +45,7 @@ fn main() -> Result<()> {
 }
 
 fn process_lines<T: Iterator<Item = Result<String, std::io::Error>>>(db: &mut rusqlite::Connection, lines: &mut T) -> Result<u128, rusqlite::Error> {
-    let mut tx = db.transaction()?;
+    let tx = db.transaction()?;
     let mut stmt = sporker::get_log_stmt(&tx);
 
     let mut processed = 0u128;

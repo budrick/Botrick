@@ -16,11 +16,6 @@ pub fn parse() -> Args {
     Args::parse()
 }
 
-#[derive(Parser)]
-#[command(author, version, about, long_about = None)]
-#[command(propagate_version = true)]
-pub struct Cli {}
-
 #[derive(Subcommand, Debug)]
 enum Commands {
     /// Create a default configuration and data files

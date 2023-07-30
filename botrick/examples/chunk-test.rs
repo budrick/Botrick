@@ -43,7 +43,7 @@ fn run_batch<T: Iterator<Item = Result<String, std::io::Error>>>(
         proc_count += 1;
         if line.is_err() {
             println!("Error at {}: {:?}", proc_count, line);
-            break
+            break;
         }
     }
 

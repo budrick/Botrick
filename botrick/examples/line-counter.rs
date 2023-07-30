@@ -8,7 +8,6 @@ struct Args {
     pub file: Option<std::path::PathBuf>,
 }
 
-
 fn main() -> color_eyre::eyre::Result<()> {
     color_eyre::install()?;
     let args = Args::parse();
@@ -24,7 +23,9 @@ fn main() -> color_eyre::eyre::Result<()> {
     Ok(())
 }
 
-fn open_file_lines<P: AsRef<std::path::Path>>(filename: P) -> std::io::Result<std::io::Lines<std::io::BufReader<std::fs::File>>> {
+fn open_file_lines<P: AsRef<std::path::Path>>(
+    filename: P,
+) -> std::io::Result<std::io::Lines<std::io::BufReader<std::fs::File>>> {
     let file = std::fs::File::open(filename)?;
     Ok(std::io::BufReader::new(file).lines())
 }

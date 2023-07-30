@@ -1,5 +1,5 @@
 use clap::Parser;
-use color_eyre::{eyre::Result};
+use color_eyre::eyre::Result;
 use rusqlite::named_params;
 use std::{
     fs::File,
@@ -32,7 +32,7 @@ fn main() -> Result<()> {
 
     while let Ok(processed) = process_lines(&mut db, &mut lines) {
         if processed == 0 {
-            break
+            break;
         }
         processed_total += processed;
         println!("Processed: {}", processed_total);
@@ -44,7 +44,10 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn process_lines<T: Iterator<Item = Result<String, std::io::Error>>>(db: &mut rusqlite::Connection, lines: &mut T) -> Result<u128, rusqlite::Error> {
+fn process_lines<T: Iterator<Item = Result<String, std::io::Error>>>(
+    db: &mut rusqlite::Connection,
+    lines: &mut T,
+) -> Result<u128, rusqlite::Error> {
     let tx = db.transaction()?;
     let mut stmt = sporker::get_log_stmt(&tx);
 
@@ -53,7 +56,7 @@ fn process_lines<T: Iterator<Item = Result<String, std::io::Error>>>(db: &mut ru
     for oline in lines {
         processed += 1;
         if oline.is_err() {
-            continue
+            continue;
         }
         let line = oline.unwrap();
 
@@ -125,7 +128,7 @@ fn process_lines<T: Iterator<Item = Result<String, std::io::Error>>>(db: &mut ru
         }
 
         if processed % 10_000 == 0 {
-            break
+            break;
         }
     }
     drop(stmt);

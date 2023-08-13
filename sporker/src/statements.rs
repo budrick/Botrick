@@ -4,7 +4,7 @@ pub fn random_start(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
             "
-            SELECT werd, nextwerd, prevwerd FROM werdz
+            SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
         WHERE _ROWID_ >= (abs(random()) % (SELECT max(_ROWID_) FROM werdz))
         AND (prevwerd != ''
         OR nextwerd != '')
@@ -21,7 +21,7 @@ pub fn random_start_like(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
             "
-            SELECT werd, nextwerd, prevwerd FROM werdz
+            SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
         WHERE (prevwerd != ''
         OR nextwerd != '')
         AND normalizedsaidby = lower(:saidby)
@@ -36,7 +36,7 @@ pub fn search_start(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
             "
-            SELECT werd, nextwerd, prevwerd FROM werdz
+            SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd AND (prevwerd != '' OR nextwerd != '')
@@ -52,7 +52,7 @@ pub fn search_start_like(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
             "
-            SELECT werd, nextwerd, prevwerd FROM werdz
+            SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd AND (prevwerd != '' OR nextwerd != '')
@@ -69,7 +69,7 @@ pub fn search_next(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
             "
-            SELECT werd, nextwerd, prevwerd FROM werdz
+            SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd
@@ -86,7 +86,7 @@ pub fn search_next(db: &Connection) -> CachedStatement<'_> {
 pub fn search_next_like(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
-            "SELECT werd, nextwerd, prevwerd FROM werdz
+            "SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd
@@ -104,7 +104,7 @@ pub fn search_next_like(db: &Connection) -> CachedStatement<'_> {
 pub fn search_prev(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
-            "SELECT werd, nextwerd, prevwerd FROM werdz
+            "SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd
@@ -121,7 +121,7 @@ pub fn search_prev(db: &Connection) -> CachedStatement<'_> {
 pub fn search_prev_like(db: &Connection) -> CachedStatement<'_> {
     return db
         .prepare_cached(
-            "SELECT werd, nextwerd, prevwerd FROM werdz
+            "SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
         WHERE rowid IN (
             SELECT rowid FROM werdz
             WHERE werd = :werd

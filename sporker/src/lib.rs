@@ -17,13 +17,6 @@ pub struct Foon {
     next: Option<String>,
 }
 
-fn stropt(s: String) -> Option<String> {
-    if !s.is_empty() {
-        return Some(s);
-    }
-    None
-}
-
 impl Foon {
     // Fetch the next word record. Returns the word record or None.
     pub fn next_word(&self, s: &Spork) -> Option<Foon> {
@@ -34,8 +27,8 @@ impl Foon {
             |row| {
                 Ok(Foon {
                     werd: row.get(0)?,
-                    next: stropt(row.get(1)?),
-                    prev: stropt(row.get(2)?),
+                    next: row.get(1)?,
+                    prev: row.get(2)?,
                 })
             },
         );
@@ -55,8 +48,8 @@ impl Foon {
             |row| {
                 Ok(Foon {
                     werd: row.get(0)?,
-                    next: stropt(row.get(1)?),
-                    prev: stropt(row.get(2)?),
+                    next: row.get(1)?,
+                    prev: row.get(2)?,
                 })
             },
         );
@@ -76,8 +69,8 @@ impl Foon {
             |row| {
                 Ok(Foon {
                     werd: row.get(0)?,
-                    next: stropt(row.get(1)?),
-                    prev: stropt(row.get(2)?),
+                    next: row.get(1)?,
+                    prev: row.get(2)?,
                 })
             },
         );
@@ -97,8 +90,8 @@ impl Foon {
             |row| {
                 Ok(Foon {
                     werd: row.get(0)?,
-                    next: stropt(row.get(1)?),
-                    prev: stropt(row.get(2)?),
+                    next: row.get(1)?,
+                    prev: row.get(2)?,
                 })
             },
         );
@@ -153,8 +146,8 @@ impl Spork {
         let res = stmt.query_row([], |row| {
             Ok(Foon {
                 werd: row.get(0)?,
-                next: stropt(row.get(1)?),
-                prev: stropt(row.get(2)?),
+                next: row.get(1)?,
+                prev: row.get(2)?,
             })
         });
 
@@ -170,8 +163,8 @@ impl Spork {
         let res = stmt.query_row(named_params! {":saidby": saidby}, |row| {
             Ok(Foon {
                 werd: row.get(0)?,
-                next: stropt(row.get(1)?),
-                prev: stropt(row.get(2)?),
+                next: row.get(1)?,
+                prev: row.get(2)?,
             })
         });
 
@@ -188,8 +181,8 @@ impl Spork {
         let res = stmt.query_row(named_params! {":werd": word}, |row| {
             Ok(Foon {
                 werd: row.get(0)?,
-                next: stropt(row.get(1)?),
-                prev: stropt(row.get(2)?),
+                next: row.get(1)?,
+                prev: row.get(2)?,
             })
         });
 
@@ -206,8 +199,8 @@ impl Spork {
         let res = stmt.query_row(named_params! {":werd": word, ":saidby": saidby}, |row| {
             Ok(Foon {
                 werd: row.get(0)?,
-                next: stropt(row.get(1)?),
-                prev: stropt(row.get(2)?),
+                next: row.get(1)?,
+                prev: row.get(2)?,
             })
         });
 

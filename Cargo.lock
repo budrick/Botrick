@@ -163,7 +163,7 @@ checksum = "6dbe3c979c178231552ecba20214a8272df4e09f232a87aef4320cf06539aded"
 
 [[package]]
 name = "botrick"
-version = "0.6.1"
+version = "0.6.2"
 dependencies = [
  "clap",
  "color-eyre",
@@ -1051,7 +1051,7 @@ dependencies = [
 
 [[package]]
 name = "misc"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "clap",
  "color-eyre",
@@ -1655,7 +1655,7 @@ dependencies = [
 
 [[package]]
 name = "sporker"
-version = "0.3.1"
+version = "0.3.2"
 dependencies = [
  "regex",
  "rusqlite",

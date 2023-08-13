@@ -8,5 +8,6 @@ edition = "2021"
 [dependencies]
 clap = "4.0.18"
 color-eyre = "0.6.2"
+rusqlite = "0.29.0"
 sporker = { path = "../sporker" }
 tokio = "1.21.2"

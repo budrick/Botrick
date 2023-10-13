@@ -84,7 +84,7 @@ async fn main() -> Result<()> {
     let misc_handler = Arc::new(MiscActorHandle::new(sender.clone()));
     irc_handler.register_prefixed(
         bot_config_ref.command_prefix,
-        ["isit"],
+        ["isit", "dword"],
         misc_handler.clone(),
     );
     irc_handler.register_prefixed('~', ["isit"], misc_handler.clone());

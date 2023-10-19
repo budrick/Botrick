@@ -1,6 +1,5 @@
 use crate::{color::colorize, irc::CommandMessage};
 use rand::prelude::*;
-use rand::seq::SliceRandom;
 use tokio::sync::mpsc;
 use crate::data::{DWORD_ROOTS, DWORDS};
 
@@ -45,7 +44,7 @@ impl MiscActor {
 
                 let root = DWORD_ROOTS[rand::thread_rng().gen_range(0..DWORD_ROOTS.len())];
                 let mut root = root.to_owned();
-                for i in 1..num_elements {
+                for _ in 1..num_elements {
                     root.push('\\');
                     root.push_str(DWORDS[rand::thread_rng().gen_range(0..DWORDS.len())]);
                 }

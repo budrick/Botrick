@@ -1,9 +1,9 @@
-pub const DWORD_ROOTS: &'static [&str] = &[
+pub const DWORD_ROOTS: &[&str] = &[
     "HKLM",
     "HKIM",
     "HKFU",
 ];
-pub const DWORDS: &'static [&str] = &[
+pub const DWORDS: &[&str] = &[
     "MICRODINKY",
     "7",
     "yes",

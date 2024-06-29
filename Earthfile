@@ -10,10 +10,10 @@ build:
     # See https://github.com/earthly/lib/tree/main/rust
     RUN apt update && apt install -y libssl-dev libsqlite3-dev pkg-config
     DO rust+INIT --keep_fingerprints=true
-    COPY --keep-ts --dir botrick misc sporker werdle Cargo.lock Cargo.toml .
+    COPY --keep-ts --dir crates Cargo.lock Cargo.toml .
     DO rust+CARGO --args="build --release --bin botrick" --output="release/[^/\.]+"
     SAVE ARTIFACT target/release/botrick botrick
-    SAVE ARTIFACT target/release/botrick AS LOCAL output/botrick
+    SAVE ARTIFACT --keep-ts target/release/botrick AS LOCAL output/botrick
 
 # docker creates docker image earthly/examples:rust
 # docker:

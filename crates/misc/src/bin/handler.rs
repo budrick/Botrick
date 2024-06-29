@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use color_eyre::eyre::Result;
 // use std::future::Future;
 
@@ -25,6 +23,7 @@ where
 /*
 trait for Handler on FnOnce taking an argument
 */
+#[allow(dead_code)]
 trait HandlerWithArgs<T> {
     fn call(self, s: &str) -> String;
 }
@@ -36,7 +35,7 @@ impl<F> HandlerWithArgs<&str> for F
 where
     F: FnOnce(&str) -> String + Clone + Send + 'static,
 {
-    fn call(self, s:&str) -> String {
+    fn call(self, s: &str) -> String {
         format!("Strung: {}", self(s))
     }
 }
@@ -48,6 +47,7 @@ fn testfn() -> &'static str {
     "Hello there"
 }
 
+#[allow(dead_code)]
 fn testfnwithargs(s: &str) -> String {
     return s.to_string();
 }
@@ -56,7 +56,7 @@ fn testfnwithargs(s: &str) -> String {
 A function that calls our function with impl Handler on it
 */
 fn callfn<H>(f: H)
-where 
+where
     H: FnOnce() -> &'static str + Clone + Send + 'static,
 {
     f.clone().call();
@@ -66,7 +66,6 @@ where
 // Impl Handler for desired function signature
 // Create a Struct that represents a handler
 // implement into_handler for FnOnce to convert it into a struct witha copy of the handler function
-
 
 // Run our program in general
 fn main() -> Result<()> {

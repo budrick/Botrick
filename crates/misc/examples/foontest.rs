@@ -1,11 +1,20 @@
 use color_eyre::eyre::Result;
-use std::env;
+use std::fmt;
 
-#[derive(Debug)]
 pub struct Foon {
     prev: Option<String>,
     werd: String,
     next: Option<String>,
+}
+
+impl fmt::Debug for Foon {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        writeln!(
+            f,
+            "Werd: {:?}; Prev: {:?}; Next: {:?};",
+            self.werd, self.prev, self.next
+        )
+    }
 }
 
 fn main() -> Result<()> {

@@ -92,10 +92,6 @@ impl WerdleActor {
                 );
                 let _ = self.sender.send_privmsg(command.respond_to, message);
             }
-            // ActorMessage::GetWord { command } => {
-            //     println!("GetWord called");
-            //     let _ = self.sender.send_privmsg(command.respond_to, self.game.werd());
-            // },
         }
     }
 }

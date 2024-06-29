@@ -1,7 +1,7 @@
+use crate::data::{DWORDS, DWORD_ROOTS};
 use crate::{color::colorize, irc::CommandMessage};
 use rand::prelude::*;
 use tokio::sync::mpsc;
-use crate::data::{DWORD_ROOTS, DWORDS};
 
 struct MiscActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
@@ -35,7 +35,7 @@ impl MiscActor {
                 };
 
                 let _ = self._sender.send_privmsg(message.respond_to, output);
-            },
+            }
             ActorMessage::Dword { message } => {
                 tracing::debug!("Dword");
 
@@ -50,7 +50,7 @@ impl MiscActor {
                 }
 
                 let _ = self._sender.send_privmsg(message.respond_to, root);
-            },
+            }
         };
     }
 }

@@ -1,8 +1,3 @@
 [workspace]
-
-members = [
-    "crates/botrick",
-    "crates/sporker",
-    "crates/werdle",
-    "crates/misc"
-]
+resolver = "2"
+members = ["crates/botrick", "crates/sporker", "crates/werdle", "crates/misc"]

@@ -1,8 +1,8 @@
 [workspace]
 
 members = [
-    "botrick",
-    "sporker",
-    "werdle",
-    "misc"
+    "crates/botrick",
+    "crates/sporker",
+    "crates/werdle",
+    "crates/misc"
 ]

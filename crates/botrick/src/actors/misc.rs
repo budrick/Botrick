@@ -1,6 +1,7 @@
-use crate::data::{DWORDS, DWORD_ROOTS};
+use crate::data::{DWORD_ROOTS, DWORDS};
 use crate::{color::colorize, irc::CommandMessage};
-use rand::prelude::*;
+use rand::Rng;
+// use rand::prelude::*;
 use tokio::sync::mpsc;
 
 struct MiscActor {
@@ -27,7 +28,7 @@ impl MiscActor {
             ActorMessage::Isit { message } => {
                 tracing::debug!("Isit");
 
-                let isit: bool = random();
+                let isit: bool = rand::random();
                 let output = if isit {
                     colorize(crate::color::Color::Red, None, "It is")
                 } else {
@@ -39,14 +40,14 @@ impl MiscActor {
             ActorMessage::Dword { message } => {
                 tracing::debug!("Dword");
 
-                let mut rng = rand::thread_rng();
-                let num_elements = rng.gen_range(1..25);
+                let mut rng = rand::rng();
+                let num_elements = rng.random_range(1..25);
 
-                let root = DWORD_ROOTS[rand::thread_rng().gen_range(0..DWORD_ROOTS.len())];
+                let root = DWORD_ROOTS[rand::rng().random_range(0..DWORD_ROOTS.len())];
                 let mut root = root.to_owned();
                 for _ in 1..num_elements {
                     root.push('\\');
-                    root.push_str(DWORDS[rand::thread_rng().gen_range(0..DWORDS.len())]);
+                    root.push_str(DWORDS[rand::rng().random_range(0..DWORDS.len())]);
                 }
 
                 let _ = self._sender.send_privmsg(message.respond_to, root);

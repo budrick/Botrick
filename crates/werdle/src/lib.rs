@@ -1,4 +1,4 @@
-use rand::seq::SliceRandom;
+use rand::seq::IndexedRandom;
 use std::collections::HashSet;
 use thiserror::Error;
 
@@ -50,7 +50,7 @@ pub struct Game {
 
 impl Game {
     pub fn new() -> Self {
-        let mut rng = rand::thread_rng();
+        let mut rng = rand::rng();
         let dict = werdz();
         let werd = *dict.choose(&mut rng).unwrap_or(&"");
         Self {

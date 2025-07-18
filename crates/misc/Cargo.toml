@@ -8,6 +8,6 @@ edition = "2024"
 [dependencies]
 clap = "4.0.18"
 color-eyre = "0.6.2"
-rusqlite = "0.36.0"
+rusqlite = { version = "0.36.0", features = ["bundled"] }
 sporker = { path = "../sporker" }
 tokio = "1.45.1"

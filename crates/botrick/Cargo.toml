@@ -9,11 +9,23 @@ edition = "2024"
 clap = { version = "4.0.18", features = ["derive"] }
 confy = "1.0.0"
 futures = "0.3.25"
-irc = "1.1.0"
+irc = { version = "1.1.0", default-features = false, features = [
+    "channel-lists",
+    "ctcp",
+    "encoding",
+    "tls-rust",
+    "toml_config",
+] }
 lazy_static = "1.4.0"
 linkify = "0.10.0"
 regex = "1.6.0"
-reqwest = { version = "0.12.18", features = ["blocking"] }
+reqwest = { version = "0.12.18", default-features = false, features = [
+    "charset",
+    "http2",
+    "system-proxy",
+    "blocking",
+    "rustls-tls",
+] }
 select = "0.6.0"
 serde = { version = "1.0.147", features = ["derive"] }
 tokio = { version = "1.45.1", features = ["full"] }
@@ -32,8 +44,6 @@ path = "src/bin/botrick.rs"
 
 [dev-dependencies]
 itertools = "0.14.0"
-rusqlite = "0.36.0"
-
 # [[bin]]
 # name = "spork"
 # path = "src/spork.rs"

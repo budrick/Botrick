@@ -49,7 +49,7 @@ fn testfn() -> &'static str {
 
 #[allow(dead_code)]
 fn testfnwithargs(s: &str) -> String {
-    return s.to_string();
+    s.to_string()
 }
 
 /*

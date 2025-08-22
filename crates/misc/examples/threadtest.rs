@@ -1,8 +1,8 @@
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::sync::mpsc::{Receiver, Sender, channel};
 use std::thread;
 
-use sporker::getdb;
 use sporker::Spork;
+use sporker::getdb;
 
 // #[tokio::main]
 fn main() {

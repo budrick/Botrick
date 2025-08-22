@@ -5,7 +5,7 @@ use tokio::sync::mpsc;
 
 use crate::{
     actors::logger::LogActorHandle,
-    color::{colorize, Color},
+    color::{Color, colorize},
     config::Config,
     irc::CommandMessage,
 };
@@ -115,7 +115,7 @@ async fn scan_urls(message: CommandMessage, config: Arc<Config>, sender: irc::cl
     );
 }
 
-pub fn get_urls(message: &str) -> Vec<linkify::Link> {
+pub fn get_urls(message: &'_ str) -> Vec<linkify::Link<'_>> {
     let mut linkfinder = linkify::LinkFinder::new();
     linkfinder.kinds(&[linkify::LinkKind::Url]);
     linkfinder.links(message).collect()

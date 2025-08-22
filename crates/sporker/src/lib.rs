@@ -1,5 +1,5 @@
 use regex::Regex;
-use rusqlite::{named_params, Connection};
+use rusqlite::{Connection, named_params};
 use std::path::Path;
 
 pub mod error;
@@ -33,10 +33,7 @@ impl Foon {
             },
         );
 
-        match res {
-            Ok(r) => Some(r),
-            Err(_e) => None,
-        }
+        res.ok()
     }
 
     // Fetch the next word record. Returns the word record or None.
@@ -54,10 +51,7 @@ impl Foon {
             },
         );
 
-        match res {
-            Ok(r) => Some(r),
-            Err(_e) => None,
-        }
+        res.ok()
     }
 
     // Fetch the previous word record. Returns the word record or None.
@@ -75,10 +69,7 @@ impl Foon {
             },
         );
 
-        match res {
-            Ok(r) => Some(r),
-            Err(_e) => None,
-        }
+        res.ok()
     }
 
     // Fetch the previous word record. Returns the word record or None.
@@ -96,10 +87,7 @@ impl Foon {
             },
         );
 
-        match res {
-            Ok(r) => Some(r),
-            Err(_e) => None,
-        }
+        res.ok()
     }
 
     // Get the current word as String
@@ -151,10 +139,7 @@ impl Spork {
             })
         });
 
-        match res {
-            Ok(x) => Some(x),
-            Err(_e) => None,
-        }
+        res.ok()
     }
 
     // Fetch a random start word record from the database.
@@ -168,10 +153,7 @@ impl Spork {
             })
         });
 
-        match res {
-            Ok(x) => Some(x),
-            Err(_e) => None,
-        }
+        res.ok()
     }
 
     // Fetch a random instance of the given start word from the database.
@@ -186,10 +168,7 @@ impl Spork {
             })
         });
 
-        match res {
-            Ok(x) => Some(x),
-            Err(_e) => None,
-        }
+        res.ok()
     }
 
     // Fetch a random instance of the given start word from the database.
@@ -204,10 +183,7 @@ impl Spork {
             })
         });
 
-        match res {
-            Ok(x) => Some(x),
-            Err(_e) => None,
-        }
+        res.ok()
     }
 
     // Return an immutable reference to our DB

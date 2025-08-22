@@ -1,7 +1,7 @@
 use tokio::sync::mpsc;
 use werdle::{self, GuessResult};
 
-use crate::color::{colorize, Color};
+use crate::color::{Color, colorize};
 use crate::irc::CommandMessage;
 
 struct WerdleActor {

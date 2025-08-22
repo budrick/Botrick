@@ -1,4 +1,4 @@
-use sporker::{getdb, Spork};
+use sporker::{Spork, getdb};
 use tokio::sync::mpsc;
 
 #[derive(Debug)]

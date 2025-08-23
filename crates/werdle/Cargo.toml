@@ -6,5 +6,5 @@ edition = "2024"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-rand = "0.9.1"
-thiserror = "2.0.12"
+rand.workspace = true
+thiserror.workspace = true

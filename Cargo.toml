@@ -1,3 +1,13 @@
 [workspace]
 resolver = "2"
 members = ["crates/botrick", "crates/sporker", "crates/werdle", "crates/misc"]
+
+[workspace.dependencies]
+rusqlite = { version = "0.36.0", features = ["bundled"] }
+rand = "0.9.1"
+thiserror = "2.0.12"
+clap = { version = "4.0.18", features = ["derive"] }
+tokio = { version = "1.45.1", features = ["full"] }
+color-eyre = "0.6.2"
+regex = "1.6.0"
+

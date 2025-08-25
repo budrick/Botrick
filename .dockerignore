@@ -1,0 +1,9 @@
+# .gitignore files
+/certs
+/target
+/tmp
+/testdata
+/output
+
+# Docker files
+/Dockerfile*

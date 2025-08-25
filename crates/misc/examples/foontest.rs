@@ -58,7 +58,7 @@ fn main() -> Result<()> {
 // }
 
 pub fn getaword(db: &rusqlite::Connection) -> rusqlite::CachedStatement<'_> {
-    return db
+    db
         .prepare_cached(
             "
             SELECT werd, NULLIF(nextwerd, ''), NULLIF(prevwerd, '') FROM werdz
@@ -70,5 +70,5 @@ pub fn getaword(db: &rusqlite::Connection) -> rusqlite::CachedStatement<'_> {
         );
         ",
         )
-        .unwrap();
+        .unwrap()
 }

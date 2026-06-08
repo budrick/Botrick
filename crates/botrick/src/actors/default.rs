@@ -10,6 +10,8 @@ use crate::{
     irc::CommandMessage,
 };
 
+// use serde_json::{Result, Value};
+
 struct DefaultActor {
     receiver: mpsc::UnboundedReceiver<ActorMessage>,
     sender: irc::client::Sender,
@@ -125,18 +127,14 @@ async fn get_url_title(url: &str) -> Option<String> {
     if url.is_empty() {
         return None;
     }
-    let response_o = reqwest::get(url).await;
-    if response_o.is_err() {
-        return None;
+
+    if url.contains("youtube.com") || url.contains("youtu.be") {
+        return get_youtube_title(url).await;
     }
-    let response = response_o.unwrap();
-    let content_type = response.headers().get("content-type");
-    // if content_type.is_none() {
-    //     return None;
-    // }
-    content_type?; // weeeeeeird
+
+    let response = reqwest::get(url).await.ok()?;
+    let content_type = response.headers().get("content-type")?;
     if content_type
-        .unwrap()
         .to_str()
         .unwrap_or_default()
         .starts_with("text/html")
@@ -151,4 +149,25 @@ async fn get_url_title(url: &str) -> Option<String> {
     } else {
         None
     }
+}
+
+async fn get_youtube_title(url: &str) -> Option<String> {
+    let client = reqwest::Client::new();
+    let response = client
+        .get("https://www.youtube.com/oembed/")
+        .query(&[("url", url)])
+        .send()
+        .await
+        .ok()?;
+    let json = response.text().await.ok()?;
+    let parsed: serde_json::Value = serde_json::from_str(&json).ok()?;
+    let title = match &parsed["title"] {
+        serde_json::Value::String(v) => colorize(Color::Blue, None, v.as_ref()),
+        _ => String::from(""),
+    };
+    let author_name = match &parsed["author_name"] {
+        serde_json::Value::String(v) => colorize(Color::Red, None, v.as_ref()),
+        _ => String::from(""),
+    };
+    Some(format!("YouTube: {} - {}", author_name, title))
 }

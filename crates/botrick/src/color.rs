@@ -54,8 +54,8 @@ pub fn colors(fg: Color, bg: Option<Color>) -> String {
         return String::from("\u{3}");
     }
 
-    if bg.is_some() {
-        format!("\u{3}{},{}", fg, bg.unwrap())
+    if let Some(bg) = bg {
+        format!("\u{3}{},{}", fg, bg)
     } else {
         format!("\u{3}{}", fg)
     }

@@ -16,6 +16,7 @@ use botrick::{
         DefaultActorHandle, IrcActorHandle, MiscActorHandle, SporkActorHandle, WerdleActorHandle,
     },
     config::Config,
+    register,
 };
 // use botrick::config as botconfig;
 use color_eyre::eyre::Result;
@@ -90,6 +91,8 @@ async fn main() -> Result<()> {
     irc_handler.register_prefixed('~', ["isit"], misc_handler.clone());
 
     irc_handler.refresh_regexes();
+
+    register!();
 
     while let Some(message) = stream.next().await.transpose()? {
         if let irc::Command::PRIVMSG(ref _channel, ref text) = message.command {

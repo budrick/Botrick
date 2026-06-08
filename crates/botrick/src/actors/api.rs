@@ -8,3 +8,8 @@ impl core::fmt::Debug for dyn Actor {
         write!(f, "Actor")
     }
 }
+
+#[macro_export]
+macro_rules! register {
+    () => {};
+}

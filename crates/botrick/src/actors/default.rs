@@ -162,7 +162,7 @@ async fn get_youtube_title(url: &str) -> Option<String> {
     let json = response.text().await.ok()?;
     let parsed: serde_json::Value = serde_json::from_str(&json).ok()?;
     let title = match &parsed["title"] {
-        serde_json::Value::String(v) => colorize(Color::Blue, None, v.as_ref()),
+        serde_json::Value::String(v) => colorize(Color::Green, None, v.as_ref()),
         _ => String::from(""),
     };
     let author_name = match &parsed["author_name"] {
